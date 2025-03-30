@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# UV and Ruff
+.ruff_cache
+uv.lock
