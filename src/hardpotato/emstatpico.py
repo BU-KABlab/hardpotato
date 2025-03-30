@@ -11,7 +11,7 @@ class Info:
         * Calculate dE, sr, dt, ttot, mins and max
     '''
     def __init__(self):
-        self.tech = ['CV', 'CA', 'LSV', 'OCP']
+        self.tech = ['CV', 'CA', 'LSV', 'OCP', 'EIS']
         self.options = [
                         'mode (low_speed, high_speed, max_range)',
                         ]
@@ -284,3 +284,15 @@ class OCP:
         #info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         #info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
 
+
+class EIS:
+    '''
+        Pending:
+        * Validate parameters
+    '''
+    def __init__(self, Eini, ch, low_freq, high_freq, amplitude, sens, folder, 
+                 fileName, header, path_lib, **kwargs):
+        if ch == 0:
+            self.text = f'e\nvar h\nvar r\nvar j\nset_pgstat_chan 1\nset_pgstat_mode 0\nset_pgstat_chan 0\nset_pgstat_mode 3\nset_max_bandwidth 200k\nset_range_minmax da 0 0\nset_range ba 2950u\nset_autoranging ba 2950u 2950u\nset_range ab 4200m\nset_autoranging ab 4200m 4200m\nset_e 0\ncell_on\nmeas_loop_eis h r j 100m 200k 100 31 0\n  pck_start\n    pck_add h\n    pck_add r\n    pck_add j\n  pck_end\nendloop\non_finished:\n  cell_off\n\n'
+        elif ch == 1:
+            self.text = f'e\nvar h\nvar r\nvar j\nset_pgstat_chan 0\nset_pgstat_mode 0\nset_pgstat_chan 1\nset_pgstat_mode 3\nset_max_bandwidth 200k\nset_range_minmax da 0 0\nset_range ba 2950u\nset_autoranging ba 2950n 2950u\nset_range ab 4200m\nset_autoranging ab 4200m 4200m\nset_e 0\ncell_on\nmeas_loop_eis h r j 100m 200k 100 34 0\n  pck_start\n    pck_add h\n    pck_add r\n    pck_add j\n  pck_end\nendloop\non_finished:\n  cell_off\n\n'

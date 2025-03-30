@@ -25,7 +25,10 @@ class Save:
         elif technique == 'OCP':
             header = header + '\nt/s, E/V\n'
             self.data_array = OCP(fileName, data, model).save()
-        np.savetxt(fileName, self.data_array, delimiter=',', header=header)
+        elif technique == 'EIS':
+            header = header + '\nF, Real, Imaginary\n'
+            self.data_array = EIS(fileName, data, model).save()
+        np.savetxt(fileName, self.data_array, delimiter=',')
 
 
 class CV:
@@ -89,5 +92,22 @@ class OCP:
             E = mscript.get_values_by_column(self.data,1)
             #i = mscript.get_values_by_column(self.data,2)
             data_array = np.array([t,E]).T
+        return data_array
+    
+class EIS:
+    '''
+    '''
+    def __init__(self, fileName, data, model):
+        self.fileName = fileName
+        self.data = data
+        self.model = model
+        data_array = 0
+
+    def save(self):
+        if self.model == 'emstatpico':
+            freq = mscript.get_values_by_column(self.data,0)
+            z_re = mscript.get_values_by_column(self.data,1)
+            z_im = mscript.get_values_by_column(self.data,2)
+            data_array = np.array([freq,z_re, z_im]).T
         return data_array
 
