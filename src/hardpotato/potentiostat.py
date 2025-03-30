@@ -123,7 +123,7 @@ class Technique:
                 result = dev.readlines_until_end()
             self.data = mscript.parse_result_lines(result)
             fileName = folder_save + "/" + self.fileName + ".txt"
-            save = save_data.Save(
+            save_data.Save(
                 self.data,
                 fileName,
                 self.header,
