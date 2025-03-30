@@ -576,7 +576,6 @@ class EIS(Technique):
                 high_freq,
                 amplitude,
                 sens,
-                qt,
                 folder_save,
                 fileName,
                 header,

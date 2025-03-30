@@ -24,10 +24,10 @@ modification, are permitted provided that the following conditions are met:
    - Neither the name of PalmSens BV nor the names of its contributors
      may be used to endorse or promote products derived from this software
      without specific prior written permission.
-   - This license does not release you from any requirement to obtain separate 
-	  licenses from 3rd party patent holders to use this software.
-   - Use of the software either in source or binary form must be connected to, 
-	  run on or loaded to an PalmSens BV component.
+   - This license does not release you from any requirement to obtain separate
+          licenses from 3rd party patent holders to use this software.
+   - Use of the software either in source or binary form must be connected to,
+          run on or loaded to an PalmSens BV component.
 
 DISCLAIMER: THIS SOFTWARE IS PROVIDED BY PALMSENS "AS IS" AND ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -50,22 +50,22 @@ LOG = logging.getLogger(__name__)
 
 
 class DeviceType:
-    UNKNOWN = 'unknown device'
-    EMSTAT_PICO = 'EmStat Pico'
-    EMSTAT4_HR = 'EmStat4 HR'
-    EMSTAT4_LR = 'EmStat4 LR'
-    MULTI_EMSTAT4_HR = 'MultiEmStat4 HR'
-    MULTI_EMSTAT4_LR = 'MultiEmStat4 LR'
-    EMSTAT_PICO_BOOTLOADER = 'EmStat Pico bootloader'
+    UNKNOWN = "unknown device"
+    EMSTAT_PICO = "EmStat Pico"
+    EMSTAT4_HR = "EmStat4 HR"
+    EMSTAT4_LR = "EmStat4 LR"
+    MULTI_EMSTAT4_HR = "MultiEmStat4 HR"
+    MULTI_EMSTAT4_LR = "MultiEmStat4 LR"
+    EMSTAT_PICO_BOOTLOADER = "EmStat Pico bootloader"
 
 
 _FIRMWARE_VERSION_TO_DEVICE_TYPE_MAPPING = [
-    ('espico', DeviceType.EMSTAT_PICO),
-    ('es4_hr', DeviceType.EMSTAT4_HR),
-    ('es4_lr', DeviceType.EMSTAT4_LR),
-    ('mes4hr', DeviceType.MULTI_EMSTAT4_HR),
-    ('mes4lr', DeviceType.MULTI_EMSTAT4_LR),
-    ('espbl', DeviceType.EMSTAT_PICO_BOOTLOADER),
+    ("espico", DeviceType.EMSTAT_PICO),
+    ("es4_hr", DeviceType.EMSTAT4_HR),
+    ("es4_lr", DeviceType.EMSTAT4_LR),
+    ("mes4hr", DeviceType.MULTI_EMSTAT4_HR),
+    ("mes4lr", DeviceType.MULTI_EMSTAT4_LR),
+    ("espbl", DeviceType.EMSTAT_PICO_BOOTLOADER),
 ]
 
 
@@ -87,7 +87,7 @@ class CommunicationTimeout(Exception):
     """
 
 
-class Instrument():
+class Instrument:
     """Communication interface for MethodSCRIPT instruments.
 
     This class contains high-level communication methods that are independent
@@ -122,8 +122,8 @@ class Instrument():
         # Therefore, the ASCII encoding is chosen, which is always safe and
         # easy to use as long as the input MethodSCRIPT does not contain
         # non-ASCII characters.
-        data = text.encode('ascii')
-        LOG.debug('TX: %r', data)
+        data = text.encode("ascii")
+        LOG.debug("TX: %r", data)
         self.comm.write(data)
 
     def writelines(self, lines):
@@ -137,43 +137,45 @@ class Instrument():
         data = self.comm.readline()
         # If we received data (i.e., no timeout), log it for debugging.
         if data:
-            LOG.debug('RX: %r', data)
+            LOG.debug("RX: %r", data)
         # Decode the received line. Note that only ASCII characters are
         # expected (see the comment in `write()`). To avoid exceptions
         # in case invalid data is received, invalid bytes will be replaced
         # by a replacement character.
-        line = data.decode('ascii', errors='replace')
+        line = data.decode("ascii", errors="replace")
         if not line:
             raise CommunicationTimeout()
-        if line[-1] != '\n':
-            raise CommunicationError('No EOL character received.')
+        if line[-1] != "\n":
+            raise CommunicationError("No EOL character received.")
         return line
 
     def readlines_until_end(self):
         """Receive all lines until an empty line is received."""
         lines = []
-        print('Reading')
+        print("Reading")
         while True:
-            #print('Reading')
+            # print('Reading')
             try:
                 line = self.readline()
             except CommunicationTimeout:
                 continue
-            if line == '\n':
+            if line == "\n":
                 break
             lines.append(line)
-        print('Finished reading')
+        print("Finished reading")
         return lines
 
     def _update_firmware_version_and_device_type(self, force=False):
         # First get the firmware version string from the device.
         if force or not self.firmware_version:
-            self.write('t\n')
+            self.write("t\n")
             line1 = self.readline()
             line2 = self.readline()
-            if not (line1.startswith('t') and line2.endswith('*\n')):
-                raise CommunicationError('Invalid response to firmware version request.')
-            self.firmware_version = (line1 + line2).replace('\n', ' ')[1:-1]
+            if not (line1.startswith("t") and line2.endswith("*\n")):
+                raise CommunicationError(
+                    "Invalid response to firmware version request."
+                )
+            self.firmware_version = (line1 + line2).replace("\n", " ")[1:-1]
         # Then derive the device type from the firmware version string.
         for device_id, device_type in _FIRMWARE_VERSION_TO_DEVICE_TYPE_MAPPING:
             if self.firmware_version.startswith(device_id):
@@ -201,32 +203,32 @@ class Instrument():
         return self.device_type
 
     def get_mscript_version(self):
-        self.write('v\n')
+        self.write("v\n")
         response = self.readline()
         return int(response[1:-1])
 
     def get_serial_number(self):
         """Read the EmStat Pico serial number."""
-        self.write('i\n')
+        self.write("i\n")
         return self.readline()[1:-1]
 
     def get_register(self, register):
         """Get the value of a register."""
-        self.write('G%02d\n' % register)
+        self.write("G%02d\n" % register)
         return self.readline()[1:-1]
 
     def load_mscript_from_flash(self):
         """Load the MethodSCRIPT from flash to RAM."""
-        self.write('Lmscr\n')
+        self.write("Lmscr\n")
         self.readline()
         # TODO: check response!
 
     def run_mscript_from_flash(self):
         """Load the MethodSCRIPT from flash to RAM and execute it."""
-        self.write('Lmscr\n')
+        self.write("Lmscr\n")
         self.readline()
         # TODO: check response!
-        self.write('r\n')
+        self.write("r\n")
 
     def send_script(self, path):
         """Read a script from file and send it to the device.
@@ -237,7 +239,7 @@ class Instrument():
         The lines written to the device will always use '\n' line endings
         (Linux format).
         """
-        with open(path, 'rt', encoding='ascii') as file:
+        with open(path, "rt", encoding="ascii") as file:
             lines = file.readlines()
         self.writelines(lines)
 
@@ -256,22 +258,22 @@ class Instrument():
         would cause communication issues.
         This method should recover from such situation and restore communication.
         """
-        LOG.info('Aborting possible active scripts and syncing communication.')
+        LOG.info("Aborting possible active scripts and syncing communication.")
         # Send new line character to flush possible command in command buffer.
-        self.write('\n')
+        self.write("\n")
         # Send abort command.
-        self.write('Z\n')
+        self.write("Z\n")
         # Wait for acknowledgment of abort command.
         while True:
             response = self.readline()
-            if response.startswith('Z'):
+            if response.startswith("Z"):
                 break
         # Check response.
-        if response == 'Z!0006\n':
-            LOG.info('No active scripts are currently running.')
+        if response == "Z!0006\n":
+            LOG.info("No active scripts are currently running.")
             # Wait for > 50 ms after a failed command ('!' in response).
             time.sleep(0.1)
-        if response == 'Z\n':
-            LOG.info('Waiting for active script to finish...')
+        if response == "Z\n":
+            LOG.info("Waiting for active script to finish...")
             self.readlines_until_end()
-        LOG.info('Device is ready.')
+        LOG.info("Device is ready.")
