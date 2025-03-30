@@ -1,4 +1,4 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 
 def readme():
@@ -8,15 +8,15 @@ def readme():
 
 setup(
     name="hardpotato",
-    version="1.3.13",
+    version="1.3.14",
     description="Python API to control programmable potentiostats.",
     long_description=readme(),
     long_description_content_type="text/markdown",
-    author="Oliver Rodriguez",
+    author="Oliver Rodriguez, Odin Holmes, Gregory Robben",
     author_email="oliver.rdz@softpotato.xyz",
     packages=find_packages("src"),
     package_dir={"": "src"},
-    url="https://github.com/jrlLAB/hardpotato",
+    url="https://github.com/BU-KABlab/hardpotato",
     keywords="Electrochemistry",
     install_requires=["numpy", "scipy", "matplotlib", "softpotato", "pyserial"],
 )
