@@ -1,4 +1,5 @@
 import subprocess
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -604,7 +605,72 @@ class EIS(Technique):
             print("Potentiostat model " + model_pstat + " does not have EIS.")
 
 
-if __name__ == "__main__":
-    sens = 1e-8
-    sr = [0.1, 0.2, 0.5]
-    folder = "C:/Users/oliverrz/Desktop/Oliver/Data/220113_PythonMacros"
+class MethodScript(Technique):
+    """
+    For use with EmstatPico potentiostat.
+
+    This class is used to run a MethodScript file rather than generating one.
+    The MethodScript file must be created using the EmstatPico software.
+
+    The methodscript file is provided with the initialization of the class.
+    The file is then run using the run() method.
+    """
+
+    def __init__(
+        self,
+        folder: Optional[str],
+        fileName: Optional[str],
+        filepath: Optional[str],
+        header="MethodScript",
+    ):
+        self.header = header
+        if filepath:
+            self.filepath = filepath
+            # self.folder = filepath.split("/")[:-1]
+            self.fileName = self.filepath.split("/")[-1]
+        else:
+            self.fileName = fileName
+            self.filepath = folder_save + "/" + fileName + ".mscr"
+        self.technique = "MethodScript"
+
+        if model_pstat == "emstatpico":
+            # Check if the file exists
+            try:
+                with open(fileName, "r") as _:
+                    pass
+            except FileNotFoundError:
+                print("File " + fileName + " not found.")
+                return
+
+            # Check if the file is a MethodScript file
+            if not fileName.endswith(".mscr"):
+                print("File " + fileName + " is not a MethodScript file.")
+                return
+
+            self.tech = emstatpico.CustomMethodScript(fileName)
+            Technique.__init__(self, text=self.tech.text, fileName=fileName)
+        else:
+            print("Potentiostat model " + model_pstat + " does not have MethodScript.")
+
+    def run(self):
+        if model_pstat == "emstatpico":
+            self.writeToFile()
+            if port_ is None:
+                self.port = serial.auto_detect_port()
+            with serial.Serial(self.port, 1) as comm:
+                dev = instrument.Instrument(comm)
+                dev.send_script(self.filepath)
+                result = dev.readlines_until_end()
+            self.data = mscript.parse_result_lines(result)
+            fileName = folder_save + "/" + self.fileName + ".txt"
+            save_data.Save(
+                self.data,
+                fileName,
+                self.header,
+                model_pstat,
+                self.technique,
+                bpot=self.bpot,
+            )
+            self.plot()
+        else:
+            print("Potentiostat model " + model_pstat + " does not have MethodScript.")
