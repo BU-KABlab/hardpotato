@@ -7,6 +7,12 @@ MethodSCRIPT (the measurement data).
 The most relevant functions are:
   - parse_mscript_data_package(line)
   - parse_result_lines(lines)
+  - get_values_by_column(curves, column, icurve=None)
+
+For example, to extract data from EmStat Pico measurements:
+  1. Get raw lines from the device using pico_instrument.Instrument.readlines_until_end()
+  2. Parse the lines using parse_result_lines()
+  3. Extract specific data (time, potential, current) using get_values_by_column()
 
 -------------------------------------------------------------------------------
 Copyright (c) 2021 PalmSens BV
@@ -41,10 +47,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import collections
 import math
 import warnings
+from typing import Dict, List, Optional
 
 # Third-party imports
 import numpy as np
-
 
 # Custom types
 VarType = collections.namedtuple("VarType", ["id", "name", "unit"])
@@ -181,15 +187,36 @@ MSCRIPT_POTENTIAL_RANGES_EMSTAT4 = {
 }
 
 
-def get_variable_type(id):
-    """Get the variable type with the specified id."""
+def get_variable_type(id: str) -> VarType:
+    """Get the variable type with the specified id.
+
+    Args:
+        id: Two-letter string identifier for the variable type.
+
+    Returns:
+        A VarType namedtuple containing id, name, and unit.
+        If the id is not recognized, returns a generic VarType with "unknown" name.
+
+    Example:
+        >>> var_type = get_variable_type("ba")
+        >>> print(f"{var_type.name} ({var_type.unit})")
+        WE current (A)
+    """
     if id in MSCRIPT_VAR_TYPES_DICT:
         return MSCRIPT_VAR_TYPES_DICT[id]
     warnings.warn('Unsupported VarType id "%s"!' % id)
     return VarType(id, "unknown", "")
 
 
-def metadata_status_to_text(status):
+def metadata_status_to_text(status: int) -> str:
+    """Convert a metadata status value to a human-readable string.
+
+    Args:
+        status: Integer status value from metadata.
+
+    Returns:
+        A string describing the status flags that are set, or "OK" if no flags are set.
+    """
     descriptions = []
     for mask, description in METADATA_STATUS_FLAGS:
         if status & mask:
@@ -200,7 +227,17 @@ def metadata_status_to_text(status):
         return "OK"
 
 
-def metadata_current_range_to_text(device_type, var_type, cr):
+def metadata_current_range_to_text(device_type: str, var_type: VarType, cr: int) -> str:
+    """Convert a current range value to a human-readable string.
+
+    Args:
+        device_type: The device type string (e.g., "EmStat Pico").
+        var_type: The variable type (VarType namedtuple).
+        cr: The current range value from metadata.
+
+    Returns:
+        A string representation of the current range (e.g., "100 nA").
+    """
     cr_text = None
     if device_type == "EmStat Pico":
         cr_text = MSCRIPT_CURRENT_RANGES_EMSTAT_PICO.get(cr)
@@ -215,9 +252,28 @@ def metadata_current_range_to_text(device_type, var_type, cr):
 
 
 class MScriptVar:
-    """Class to store and parse a received MethodSCRIPT variable."""
+    """Class to store and parse a received MethodSCRIPT variable.
 
-    def __init__(self, data):
+    This class handles the parsing and interpretation of individual
+    variables received from a PalmSens potentiostat during a measurement.
+
+    Attributes:
+        id: Two-letter string identifier for the variable type.
+        raw_value: The decoded integer value from the data package.
+        si_prefix: The SI prefix character (e.g., 'n' for nano).
+        raw_metadata: List of raw metadata tokens.
+        metadata: Parsed metadata dictionary.
+        type: VarType namedtuple containing id, name, and unit.
+        value: Actual value with SI prefix applied.
+        value_string: Human-readable string representing the value with units.
+    """
+
+    def __init__(self, data: str):
+        """Initialize from a MethodSCRIPT variable string.
+
+        Args:
+            data: The variable data string from a data package.
+        """
         assert len(data) >= 10
         self.data = data[:]
         # Parse the variable type.
@@ -236,26 +292,32 @@ class MScriptVar:
         # Parse the metadata.
         self.metadata = self.parse_metadata(self.raw_metadata)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """Return a string representation for debugging."""
         return "MScriptVar(%r)" % self.data
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Return a human-readable string representation."""
         return self.value_string
 
     @property
-    def type(self):
+    def type(self) -> VarType:
+        """Get the variable type."""
         return get_variable_type(self.id)
 
     @property
-    def si_prefix_factor(self):
+    def si_prefix_factor(self) -> float:
+        """Get the multiplication factor for the SI prefix."""
         return SI_PREFIX_FACTOR[self.si_prefix]
 
     @property
-    def value(self):
+    def value(self) -> float:
+        """Get the actual value with SI prefix applied."""
         return self.raw_value * self.si_prefix_factor
 
     @property
-    def value_string(self):
+    def value_string(self) -> str:
+        """Get a human-readable string representation of the value with units."""
         if self.type.unit:
             if self.si_prefix_factor == 1:
                 if math.isnan(self.value):
@@ -268,11 +330,17 @@ class MScriptVar:
             return "%.9g" % (self.value)
 
     @staticmethod
-    def decode_value(var: str):
+    def decode_value(var: str) -> int:
         """Decode the raw value of a MethodSCRIPT variable in a data package.
 
         The input is a 7-digit hexadecimal string (without the variable type
         and/or SI prefix). The output is the converted (signed) integer value.
+
+        Args:
+            var: 7-character hexadecimal string.
+
+        Returns:
+            Decoded signed integer value.
         """
         assert len(var) == 7
         # Convert the 7 hexadecimal digits to an integer value and
@@ -280,8 +348,17 @@ class MScriptVar:
         return int(var, 16) - (2**27)
 
     @staticmethod
-    def parse_metadata(tokens):
-        """Parse the (optional) metadata."""
+    def parse_metadata(tokens: List[str]) -> Dict[str, int]:
+        """Parse the (optional) metadata.
+
+        Args:
+            tokens: List of metadata tokens.
+
+        Returns:
+            Dictionary of parsed metadata with keys:
+                - "status": Status flags
+                - "cr": Current range
+        """
         metadata = {}
         for token in tokens:
             if (len(token) == 2) and (token[0] == "1"):
@@ -293,7 +370,7 @@ class MScriptVar:
         return metadata
 
 
-def parse_mscript_data_package(line: str):
+def parse_mscript_data_package(line: str) -> Optional[List[MScriptVar]]:
     """Parse a MethodSCRIPT data package.
 
     The format of a MethodSCRIPT data package is described in the
@@ -302,16 +379,25 @@ def parse_mscript_data_package(line: str):
     variables. Each variable consists of a type (describing the
     variable), a value, and optionally one or more metadata values.
 
-    This method returns a list of variables (of type `MScriptVar`)
-    found in the line, if the line could successfully be decoded.
-    If the line was not a MethodSCRIPT data package, `None` is
-    returned.
+    Args:
+        line: A line of text received from the potentiostat.
+
+    Returns:
+        A list of variables (of type `MScriptVar`) if the line is a valid
+        data package, or None if the line is not a data package.
+
+    Example:
+        >>> line = "Peb0000001 ;ba2000000n,10,20a\n"
+        >>> vars = parse_mscript_data_package(line)
+        >>> print(f"Time: {vars[0].value} s, Current: {vars[1].value} A")
+        Time: 1.0 s, Current: 2.0e-9 A
     """
     if line.startswith("P") and line.endswith("\n"):
         return [MScriptVar(var) for var in line[1:-1].split(";")]
+    return None
 
 
-def parse_result_lines(lines):
+def parse_result_lines(lines: List[str]) -> List[List[List[MScriptVar]]]:
     """Parse the result of a MethodSCRIPT and return a list of curves.
 
     This method returns a list of curves, where each curve is a list of
@@ -319,10 +405,24 @@ def parse_result_lines(lines):
     such as '*', '+' or '-'. Each data package is a list of variables of
     type MScriptVar.
 
-    So, the return type is a list of list of list of MScriptVars, and
-    each variable can be accessed as `result[curve][row][col]`. For
-    example, `result[1][2][3]` is the 4th variable of the 3th data point
-    of the 2nd measurement loop.
+    Args:
+        lines: List of lines received from the potentiostat.
+
+    Returns:
+        A list of curves, where each curve is a list of data packages,
+        and each data package is a list of variables.
+
+    Note:
+        The return type is a list of list of list of MScriptVars, and
+        each variable can be accessed as `result[curve][row][col]`. For
+        example, `result[1][2][3]` is the 4th variable of the 3th data point
+        of the 2nd measurement loop.
+
+    Example:
+        >>> lines = ["Peb0000001 ;ba2000000n\n", "*\n"]
+        >>> curves = parse_result_lines(lines)
+        >>> print(f"Time: {curves[0][0][0].value} s")
+        Time: 1.0 s
     """
     curves = []
     current_curve = []
@@ -347,21 +447,40 @@ def parse_result_lines(lines):
     return curves
 
 
-def get_values_by_column(curves, column, icurve=None):
+def get_values_by_column(
+    curves: List[List[List[MScriptVar]]], column: int, icurve: Optional[int] = None
+) -> np.ndarray:
     """Get all values from the specified column.
 
-    `curves` is a list of list of list of variables of type `MScriptVar`, as
-    returned by `parse_result_lines()`.
+    This function extracts values from specific variables in the data packages
+    and returns them as a numpy array for easy processing and plotting.
 
-    `column` specifies which variable to return (i.e., the index within each
-    data package).
+    Args:
+        curves: A list of curves as returned by parse_result_lines().
+        column: Which variable to extract (index within each data package).
+        icurve: Which curve to use. If None (default), data from all curves
+                are concatenated.
 
-    `icurve` specifies the index of the curve to use. If `None` (the default
-    value), the data from all curves are used and concatenated into one list.
+    Returns:
+        A numpy array containing the values of each variable in the specified column.
 
-    This function returns a numpy array containing (only) the values of each
-    variable in the specified column, so they can easily be used for further
-    processing and/or plotting.
+    Example:
+        ```python
+        # Parse data from a measurement
+        curves = parse_result_lines(data_lines)
+
+        # Extract time, potential, and current
+        time = get_values_by_column(curves, 0)       # First column (time)
+        potential = get_values_by_column(curves, 1)   # Second column (potential)
+        current = get_values_by_column(curves, 2)     # Third column (current)
+
+        # Plot data
+        import matplotlib.pyplot as plt
+        plt.plot(potential, current)
+        plt.xlabel('Potential (V)')
+        plt.ylabel('Current (A)')
+        plt.show()
+        ```
     """
     if icurve is None:
         values = []
