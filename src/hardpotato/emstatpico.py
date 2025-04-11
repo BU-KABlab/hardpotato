@@ -1,24 +1,40 @@
-class Test:
-    """ """
+from typing import Any, List, Optional
 
-    def __init__(self):
+
+class Test:
+    """Test class for verifying the Emstat Pico translator module.
+
+    This class is primarily used for testing and debugging purposes.
+    """
+
+    def __init__(self) -> None:
+        """Initialize the Test class and print confirmation message."""
         print("Test from Emstat Pico translator")
 
 
 class Info:
-    """
-    Pending:
-    * Calculate dE, sr, dt, ttot, mins and max
+    """Information class for the Emstat Pico potentiostat.
+
+    Contains specifications and validation functionality for the
+    Emstat Pico potentiostat, including available techniques, options, and
+    parameter limits.
+
+    Attributes:
+        tech: List of available techniques.
+        options: List of available options.
+        E_min: Minimum potential value in V.
+        E_max: Maximum potential value in V.
     """
 
-    def __init__(self):
-        self.tech = ["CV", "CA", "LSV", "OCP", "EIS"]
-        self.options = [
+    def __init__(self) -> None:
+        """Initialize the Info class with Emstat Pico specifications."""
+        self.tech: List[str] = ["CV", "CA", "LSV", "OCP", "EIS"]
+        self.options: List[str] = [
             "mode (low_speed, high_speed, max_range)",
         ]
 
-        self.E_min = -1.7
-        self.E_max = 2
+        self.E_min: float = -1.7  # Minimum potential in V
+        self.E_max: float = 2  # Maximum potential in V
         # self.sr_min = 0.000001
         # self.sr_max = 10
         # self.dE_min =
@@ -28,7 +44,21 @@ class Info:
         # self.ttot_min =
         # self.ttot_max =
 
-    def limits(self, val, low, high, label, units):
+    def limits(
+        self, val: float, low: float, high: float, label: str, units: str
+    ) -> None:
+        """Check if a value is within specified limits.
+
+        Args:
+            val: The value to check.
+            low: The lower limit.
+            high: The upper limit.
+            label: Name of the parameter being checked.
+            units: Units of the parameter being checked.
+
+        Raises:
+            Exception: If the value is outside the specified limits.
+        """
         if val < low or val > high:
             raise Exception(
                 label
@@ -46,13 +76,23 @@ class Info:
                 + units
             )
 
-    def specifications(self):
+    def specifications(self) -> None:
+        """Print the specifications of the Emstat Pico potentiostat."""
         print("Model: PalmSens Emstat Pico (emstatpico)")
         print("Techiques available:", self.tech)
         print("Options available:", self.options)
 
 
-def get_mode(val):
+def get_mode(val: str) -> int:
+    """Convert mode string to corresponding integer value.
+
+    Args:
+        val: Mode string ('low_speed', 'high_speed', or 'max_range')
+
+    Returns:
+        int: Integer representing the mode (2 for low_speed, 3 for high_speed,
+             4 for max_range, defaults to 4)
+    """
     if val == "low_speed":
         return 2
     elif val == "high_speed":
@@ -64,30 +104,78 @@ def get_mode(val):
 
 
 class CV:
-    """
-    **kwargs:
-        mode # 'low_speed', 'high_speed', 'max_range'
+    """Cyclic Voltammetry (CV) technique for the Emstat Pico potentiostat.
+
+    This class handles the creation of CV method scripts for the Emstat Pico.
+
+    Attributes:
+        text: The complete method script as a string.
+
+    Examples:
+        ```python
+        import hardpotato as hp
+
+        # Setup Emstat Pico
+        folder = "C:/Users/username/Experiments/data"
+        hp.potentiostat.Setup('emstatpico', None, folder)
+
+        # Define parameters
+        Eini = -0.5    # V, initial potential
+        Ev1 = 0.5      # V, first vertex potential
+        Ev2 = -0.5     # V, second vertex potential
+        Efin = 0.0     # V, final potential
+        sr = 0.1       # V/s, scan rate
+        dE = 0.001     # V, potential increment
+        nSweeps = 2    # number of sweeps
+        sens = 1e-6    # A/V, current sensitivity
+        fileName = "CV_test"
+        header = "CV"
+
+        # Create and run CV
+        cv = hp.potentiostat.CV(Eini, Ev1, Ev2, Efin, sr, dE, nSweeps, sens, fileName, header)
+        cv.run()
+        ```
+
+    Additional options:
+        mode: Operation mode ('low_speed', 'high_speed', or 'max_range')
     """
 
     def __init__(
         self,
-        Eini,
-        Ev1,
-        Ev2,
-        Efin,
-        sr,
-        dE,
-        nSweeps,
-        sens,
-        folder,
-        fileName,
-        header,
-        path_lib=None,
-        **kwargs,
-    ):
-        """
-        Potential based variables need to be changed to mV int(Eini*100).
-        For some reason Pico does not accept not having prefix
+        Eini: float,
+        Ev1: float,
+        Ev2: float,
+        Efin: float,
+        sr: float,
+        dE: float,
+        nSweeps: int,
+        sens: float,
+        folder: str,
+        fileName: str,
+        header: str,
+        path_lib: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
+        """Initialize a CV experiment for the Emstat Pico.
+
+        Args:
+            Eini: Initial potential in V.
+            Ev1: First vertex potential in V.
+            Ev2: Second vertex potential in V.
+            Efin: Final potential in V.
+            sr: Scan rate in V/s.
+            dE: Potential increment in V.
+            nSweeps: Number of sweeps.
+            sens: Current sensitivity in A/V.
+            folder: Path to save data.
+            fileName: Base name for data files.
+            header: Header for data files.
+            path_lib: Library path (not used for Emstat Pico).
+            **kwargs: Additional options:
+                mode: Operation mode ('low_speed', 'high_speed', 'max_range')
+
+        Note:
+            Potential values are automatically converted to mV integers for the Pico.
         """
         self.Eini = int(Eini * 1000)
         self.Ev1 = int(Ev1 * 1000)
@@ -134,7 +222,32 @@ class CV:
         )
         self.text = self.ini + self.pre_body + self.body
 
-    def validate(self, Eini, Ev1, Ev2, Efin, sr, dE, nSweeps, sens):
+    def validate(
+        self,
+        Eini: float,
+        Ev1: float,
+        Ev2: float,
+        Efin: float,
+        sr: float,
+        dE: float,
+        nSweeps: int,
+        sens: float,
+    ) -> None:
+        """Validate the parameters for the CV experiment.
+
+        Args:
+            Eini: Initial potential in V.
+            Ev1: First vertex potential in V.
+            Ev2: Second vertex potential in V.
+            Efin: Final potential in V.
+            sr: Scan rate in V/s.
+            dE: Potential increment in V.
+            nSweeps: Number of sweeps.
+            sens: Current sensitivity in A/V.
+
+        Raises:
+            Exception: If any parameter is outside the specified limits.
+        """
         info = Info()
         info.limits(Eini, info.E_min, info.E_max, "Eini", "V")
         info.limits(Ev1, info.E_min, info.E_max, "Ev1", "V")
@@ -144,7 +257,16 @@ class CV:
         # info.limits(dE, info.dE_min, info.dE_max, 'dE', 'V')
         # info.limits(sens, info.sens_min, info.sens_max, 'sens', 'A/V')
 
-    def bipot(self, E, sens):
+    def bipot(self, E: float, sens: float) -> None:
+        """Configure the bipotentiostat mode for the CV experiment.
+
+        Args:
+            E: Second working electrode potential in V.
+            sens: Current sensitivity in A/V.
+
+        Raises:
+            Exception: If any parameter is outside the specified limits.
+        """
         # Validate bipot:
         info = Info()
         info.limits(E, info.E_min, info.E_max, "E2", "V")
@@ -193,7 +315,7 @@ class CA:
 
     def __init__(
         self, Estep, dt, ttot, sens, folder, fileName, header, path_lib=None, **kwargs
-    ):
+    ) -> None:
         """ """
         self.Estep = int(Estep * 1000)
         self.dt = int(dt * 1000)
@@ -231,14 +353,14 @@ class CA:
         )
         self.text = self.ini + self.pre_body + self.body
 
-    def validate(self, Estep, dt, ttot, sens):
+    def validate(self, Estep: float, dt: float, ttot: float, sens: float) -> None:
         info = Info()
         info.limits(Estep, info.E_min, info.E_max, "Estep", "V")
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
         # info.limits(sens, info.sens_min, info.sens_max, 'sens', 'A/V')
 
-    def bipot(self, E, sens):
+    def bipot(self, E: float, sens: float) -> None:
         # Validate bipot:
         info = Info()
         info.limits(E, info.E_min, info.E_max, "E2", "V")
@@ -282,17 +404,17 @@ class LSV:
 
     def __init__(
         self,
-        Eini,
-        Efin,
-        sr,
-        dE,
-        sens,
-        folder,
-        fileName,
-        header,
-        path_lib=None,
-        **kwargs,
-    ):
+        Eini: float,
+        Efin: float,
+        sr: float,
+        dE: float,
+        sens: float,
+        folder: str,
+        fileName: str,
+        header: str,
+        path_lib: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         self.Eini = int(Eini * 1000)
         self.Efin = int(Efin * 1000)
         self.sr = int(sr * 1000)
@@ -331,7 +453,7 @@ class LSV:
         )
         self.text = self.ini + self.pre_body + self.body
 
-    def bipot(self, E, sens):
+    def bipot(self, E: float, sens: float) -> None:
         # Validate bipot:
         info = Info()
         info.limits(E, info.E_min, info.E_max, "E2", "V")
@@ -367,7 +489,9 @@ class LSV:
         self.text = self.ini + self.pre_body + self.body
         # print(self.text)
 
-    def validate(self, Eini, Efin, sr, dE, sens):
+    def validate(
+        self, Eini: float, Efin: float, sr: float, dE: float, sens: float
+    ) -> None:
         info = Info()
         info.limits(Eini, info.E_min, info.E_max, "Eini", "V")
         info.limits(Efin, info.E_min, info.E_max, "Efin", "V")
@@ -379,7 +503,16 @@ class LSV:
 class OCP:
     """ """
 
-    def __init__(self, ttot, dt, folder, fileName, header, path_lib=None, **kwargs):
+    def __init__(
+        self,
+        ttot: float,
+        dt: float,
+        folder: str,
+        fileName: str,
+        header: str,
+        path_lib: Optional[str] = None,
+        **kwargs: Any,
+    ) -> None:
         dt = int(dt * 1000)
         ttot = int(ttot * 1000)
         self.text = ""
@@ -399,10 +532,18 @@ class OCP:
         )
         self.text = self.ini + self.pre_body + self.body
 
-    def validate(self, ttot, dt):
-        info = Info()
-        # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
-        # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
+    def validate(self, ttot: float, dt: float) -> None:
+        """Validate the parameters for the OCP experiment.
+
+        Args:
+            ttot: Total time in s.
+            dt: Time increment in s.
+
+        """
+
+        _ = Info()
+        # info.limits(dt, info.dt_min, info.dt_max, "dt", "s")
+        # info.limits(ttot, info.ttot_min, info.ttot_max, "ttot", "s")
 
 
 class EIS:
@@ -413,18 +554,18 @@ class EIS:
 
     def __init__(
         self,
-        Eini,
-        ch,
-        low_freq,
-        high_freq,
-        amplitude,
-        sens,
-        folder,
-        fileName,
-        header,
-        path_lib,
-        **kwargs,
-    ):
+        Eini: float,
+        ch: int,
+        low_freq: float,
+        high_freq: float,
+        amplitude: float,
+        sens: float,
+        folder: str,
+        fileName: str,
+        header: str,
+        path_lib: Optional[str],
+        **kwargs: Any,
+    ) -> None:
         if ch == 0:
             self.text = "e\nvar h\nvar r\nvar j\nset_pgstat_chan 1\nset_pgstat_mode 0\nset_pgstat_chan 0\nset_pgstat_mode 3\nset_max_bandwidth 200k\nset_range_minmax da 0 0\nset_range ba 2950u\nset_autoranging ba 2950u 2950u\nset_range ab 4200m\nset_autoranging ab 4200m 4200m\nset_e 0\ncell_on\nmeas_loop_eis h r j 100m 200k 100 31 0\n  pck_start\n    pck_add h\n    pck_add r\n    pck_add j\n  pck_end\nendloop\non_finished:\n  cell_off\n\n"
         elif ch == 1:
