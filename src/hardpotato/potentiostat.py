@@ -145,6 +145,59 @@ class Setup:
         print("Save folder: " + folder_save)
         print("----------\n")
 
+    def check_connection(self) -> bool:
+        """Check if a connection can be made to the potentiostat.
+
+        Returns:
+            bool: True if the connection is successful, False otherwise.
+
+        Examples:
+            ```python
+            import hardpotato as hp
+
+            # Setup potentiostat
+            pstat = hp.potentiostat.Setup('chi760e', 'C:/CHI/chi760e')
+
+            # Check connection
+            if pstat.check_connection():
+                print("Connected to potentiostat!")
+            else:
+                print("Could not connect to potentiostat.")
+            ```
+        """
+        if model_pstat == "chi1205b":
+            import hardpotato.chi1205b as module
+
+            return module.check_connection(path_lib)
+        elif model_pstat == "chi1242b":
+            import hardpotato.chi1242b as module
+
+            return module.check_connection(path_lib)
+        elif model_pstat == "chi601e":
+            import hardpotato.chi601e as module
+
+            return module.check_connection(path_lib)
+        elif model_pstat == "chi760e":
+            import hardpotato.chi760e as module
+
+            return module.check_connection(path_lib)
+        elif model_pstat == "emstatpico":
+            import hardpotato.emstatpico as module
+
+            if port_ is None:
+                port = serial.auto_detect_port()
+            else:
+                port = port_
+            return module.check_connection(port)
+        else:
+            print(
+                "Potentiostat model "
+                + model_pstat
+                + " not available in the library or not properly set up."
+            )
+            print("Available models:", models_available)
+            return False
+
 
 class Technique:
     """Base class for all electrochemical techniques.
@@ -206,7 +259,6 @@ class Technique:
             # Write macro:
             self.writeToFile()
             # Run command:
-            print("Running CV")
             command = (
                 f'"{path_lib}"'
                 + ' /runmacro:"'

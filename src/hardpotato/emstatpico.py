@@ -1,5 +1,8 @@
 from typing import Any, List, Optional
 
+from hardpotato.pico_instrument import DeviceType, Instrument
+from hardpotato.pico_serial import Serial
+
 
 class Test:
     """Test class for verifying the Emstat Pico translator module.
@@ -10,6 +13,39 @@ class Test:
     def __init__(self) -> None:
         """Initialize the Test class and print confirmation message."""
         print("Test from Emstat Pico translator")
+
+
+def check_connection(path: str) -> bool:
+    """Check if a connection can be made to the EmstatPico potentiostat.
+
+    This function attempts to establish a connection with the EmstatPico device
+    at the specified path (Serial port) and verify its identity.
+
+    Args:
+        path: Serial port where the EmstatPico is connected (e.g., "COM3" on Windows, or "/dev/ttyUSB0" on Linux).
+
+    Returns:
+        bool: True if the connection check is successful, False otherwise.
+    """
+    try:
+        with Serial(path, timeout=1) as comm:
+            device = Instrument(comm)
+
+            # Get firmware version and device type
+            firmware = device.get_firmware_version()
+            device_type = device.get_device_type()
+
+            # Check if the device is an EmstatPico
+            if device_type == DeviceType.EMSTAT_PICO:
+                print(f"Successfully connected to {device_type}")
+                print(f"Firmware version: {firmware}")
+                return True
+            else:
+                print(f"Connected to {device_type}, but expected EmstatPico")
+                return False
+    except Exception as e:
+        print(f"Error connecting to EmstatPico: {str(e)}")
+        return False
 
 
 class Info:

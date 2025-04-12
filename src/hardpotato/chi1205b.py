@@ -1,3 +1,4 @@
+import os
 from typing import Any, List
 
 
@@ -10,6 +11,32 @@ class Test:
     def __init__(self) -> None:
         """Initialize the Test class and print confirmation message."""
         print("Test from chi1205b translator")
+
+
+def check_connection(path: str) -> bool:
+    """Check if a connection can be made to the CHI1205B potentiostat.
+    
+    This function checks if the required CHI software exists at the specified path.
+    
+    Args:
+        path: The path to the CHI software installation.
+        
+    Returns:
+        bool: True if the connection check is successful, False otherwise.
+    """
+    try:
+        # Check if the CHI software executable exists at the specified path
+        chi_exe = os.path.join(path, "chi1205b.exe")
+        if os.path.exists(chi_exe):
+            print("CHI1205B software found at", path)
+            return True
+        else:
+            print("CHI1205B software not found at", path)
+            print("Expected executable:", chi_exe)
+            return False
+    except Exception as e:
+        print(f"Error checking CHI1205B connection: {str(e)}")
+        return False
 
 
 class Info:

@@ -14,12 +14,41 @@ Classes:
     OCP: Sets up and validates open circuit potential measurements
 """
 
+import os
+from typing import Any, List
+
 
 class Test:
     """A simple test class to verify the module is imported correctly."""
 
     def __init__(self):
         print("Test from chi1242b translator")
+
+
+def check_connection(path: str) -> bool:
+    """Check if a connection can be made to the CHI1242B potentiostat.
+    
+    This function checks if the required CHI software exists at the specified path.
+    
+    Args:
+        path: The path to the CHI software installation.
+        
+    Returns:
+        bool: True if the connection check is successful, False otherwise.
+    """
+    try:
+        # Check if the CHI software executable exists at the specified path
+        chi_exe = os.path.join(path, "chi1242b.exe")
+        if os.path.exists(chi_exe):
+            print("CHI1242B software found at", path)
+            return True
+        else:
+            print("CHI1242B software not found at", path)
+            print("Expected executable:", chi_exe)
+            return False
+    except Exception as e:
+        print(f"Error checking CHI1242B connection: {str(e)}")
+        return False
 
 
 class Info:
