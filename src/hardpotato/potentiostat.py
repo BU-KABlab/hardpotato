@@ -132,6 +132,8 @@ class Setup:
         port_ = port
         if verbose:
             self.info()
+        else:
+            return self.check_connection()
 
     def info(self) -> None:
         """Display the current potentiostat setup.
@@ -143,6 +145,7 @@ class Setup:
         print("Potentiostat model: " + model_pstat)
         print("Potentiostat path: " + path_lib)
         print("Save folder: " + folder_save)
+        print("Connection Established: " + str(self.check_connection()))
         print("----------\n")
 
     def check_connection(self) -> bool:
