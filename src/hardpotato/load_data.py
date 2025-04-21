@@ -50,7 +50,6 @@ class Read:
     def search(self, text):
         file = open(self.file_path, "r")
         count = 0
-        flag = 0
         for line in file:
             count += 1
             if text in line:
