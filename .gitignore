@@ -131,3 +131,6 @@ dmypy.json
 # UV and Ruff
 .ruff_cache
 uv.lock
+
+# Hardpotato test files
+data/*
