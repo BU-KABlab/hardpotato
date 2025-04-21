@@ -1,7 +1,5 @@
 import hardpotato as hp
 import numpy as np
-import matplotlib.pyplot as plt
-import softpotato as sp
 
 # Select the potentiostat model to use:
 model = "chi760e"
