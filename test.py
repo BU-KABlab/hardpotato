@@ -25,20 +25,34 @@ info.specifications()
 hp.potentiostat.Setup(model, path, folder)
 
 fileName = model + "_CV"
-cv = hp.potentiostat.CV(sens=sens, fileName=fileName, qt=2, resistance=10)
-cv.bipot()
+cv = hp.potentiostat.CV(
+    sens=sens,
+    fileName=fileName,
+)
 cv.run()
 
 fileName = model + "_LSV"
-lsv = hp.potentiostat.LSV(sens=sens, fileName=fileName, qt=2, resistance=10)
-lsv.bipot()
+lsv = hp.potentiostat.LSV(
+    sens=sens,
+    fileName=fileName,
+)
 lsv.run()
 
 fileName = model + "_CA"
-ca = hp.potentiostat.CA(sens=sens, fileName=fileName, qt=2, resistance=10)
-ca.bipot()
+ca = hp.potentiostat.CA(
+    sens=sens,
+    fileName=fileName,
+)
 ca.run()
 
 fileName = model + "_OCP"
-ocp = hp.potentiostat.OCP(fileName=fileName, qt=2, resistance=10)
+ocp = hp.potentiostat.OCP(
+    fileName=fileName,
+)
 ocp.run()
+
+fileName = model + "MSCRIPT"
+mscript_file = "ferrocene_test"
+filepath = "D:/GitHub/hardpotato/ferrocene_test.mscr"
+mscript = hp.potentiostat.MethodScript(fileName=mscript_file, filepath=filepath)
+mscript.run()
