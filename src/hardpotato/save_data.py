@@ -53,7 +53,6 @@ class CV:
         self.data = data
         self.model = model
         self.bpot = bpot
-        data_array = 0
 
     def save(self):
         if self.model == "emstatpico":
@@ -76,7 +75,6 @@ class IT:
         self.data = data
         self.model = model
         self.bpot = bpot
-        data_array = 0
 
     def save(self):
         if self.model == "emstatpico":
@@ -97,7 +95,6 @@ class OCP:
         self.fileName = fileName
         self.data = data
         self.model = model
-        data_array = 0
 
     def save(self):
         if self.model == "emstatpico":
@@ -115,7 +112,6 @@ class EIS:
         self.fileName = fileName
         self.data = data
         self.model = model
-        data_array = 0
 
     def save(self):
         if self.model == "emstatpico":
