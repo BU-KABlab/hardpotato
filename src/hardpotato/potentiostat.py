@@ -79,11 +79,12 @@ class Setup:
 class Technique:
     """ """
 
-    def __init__(self, text="", fileName="CV"):
+    def __init__(self, text="", fileName="CV", plot_results: Optional[bool] = False):
         self.text = text  # text to write as macro
         self.fileName = fileName
         self.technique = "Technique"
         self.bpot = False
+        self.plot_results = plot_results
 
     def writeToFile(self):
         if model_pstat[0:3] == "chi":
@@ -133,7 +134,8 @@ class Technique:
                 bpot=self.bpot,
             )
             self.message(start=False)
-            self.plot()
+            if self.plot_results:
+                self.plot()
         else:
             print("\nNo potentiostat selected. Aborting.")
 
@@ -618,9 +620,9 @@ class MethodScript(Technique):
 
     def __init__(
         self,
-        folder: Optional[str],
-        fileName: Optional[str],
-        filepath: Optional[str],
+        folder: Optional[str] = None,
+        fileName: Optional[str] = None,
+        filepath: Optional[str] = None,
         header="MethodScript",
     ):
         self.header = header
@@ -629,48 +631,73 @@ class MethodScript(Technique):
             # self.folder = filepath.split("/")[:-1]
             self.fileName = self.filepath.split("/")[-1]
         else:
-            self.fileName = fileName
+            self.fileName = fileName.split(".")[0]
             self.filepath = folder_save + "/" + fileName + ".mscr"
         self.technique = "MethodScript"
 
         if model_pstat == "emstatpico":
             # Check if the file exists
             try:
-                with open(fileName, "r") as _:
+                with open(filepath, "r") as _:
                     pass
             except FileNotFoundError:
                 print("File " + fileName + " not found.")
-                return
+                raise FileNotFoundError
 
             # Check if the file is a MethodScript file
-            if not fileName.endswith(".mscr"):
+            if not filepath.endswith(".mscr"):
                 print("File " + fileName + " is not a MethodScript file.")
                 return
 
-            self.tech = emstatpico.CustomMethodScript(fileName)
+            self.tech = emstatpico.CustomMethodScript(filepath)
             Technique.__init__(self, text=self.tech.text, fileName=fileName)
+            self.technique = fileName.split(".")[0]
         else:
             print("Potentiostat model " + model_pstat + " does not have MethodScript.")
 
-    def run(self):
-        if model_pstat == "emstatpico":
-            self.writeToFile()
-            if port_ is None:
-                self.port = serial.auto_detect_port()
-            with serial.Serial(self.port, 1) as comm:
-                dev = instrument.Instrument(comm)
-                dev.send_script(self.filepath)
-                result = dev.readlines_until_end()
-            self.data = mscript.parse_result_lines(result)
-            fileName = folder_save + "/" + self.fileName + ".txt"
-            save_data.Save(
-                self.data,
-                fileName,
-                self.header,
-                model_pstat,
-                self.technique,
-                bpot=self.bpot,
-            )
-            self.plot()
-        else:
-            print("Potentiostat model " + model_pstat + " does not have MethodScript.")
+    # def run(self):
+    #     if model_pstat == "emstatpico":
+    #         self.message()
+
+    #         self.writeToFile()
+    #         if port_ is None:
+    #             self.port = serial.auto_detect_port()
+    #         with serial.Serial(self.port, 1) as comm:
+    #             dev = instrument.Instrument(comm)
+    #             dev.send_script(self.filepath)
+    #             result = dev.readlines_until_end()
+    #         self.data = mscript.parse_result_lines(result)
+    #         fileName = folder_save + "/" + self.fileName + ".txt"
+    #         save_data.Save(
+    #             self.data,
+    #             fileName,
+    #             self.header,
+    #             model_pstat,
+    #             self.technique,
+    #             bpot=self.bpot,
+    #         )
+    #         if self.plot_results:
+    #             self.plot()
+    #         self.message(start=False)
+
+    #         self.writeToFile()
+    #         if port_ is None:
+    #             self.port = serial.auto_detect_port()
+    #         with serial.Serial(self.port, 1) as comm:
+    #             dev = instrument.Instrument(comm)
+    #             dev.send_script(folder_save + "/" + self.fileName + ".mscr")
+    #             result = dev.readlines_until_end()
+    #         self.data = mscript.parse_result_lines(result)
+    #         fileName = folder_save + "/" + self.fileName + ".txt"
+    #         save_data.Save(
+    #             self.data,
+    #             fileName,
+    #             self.header,
+    #             model_pstat,
+    #             self.technique,
+    #             bpot=self.bpot,
+    #         )
+    #         self.message(start=False)
+
+    #     else:
+    #         print("Potentiostat model " + model_pstat + " does not have MethodScript.")
