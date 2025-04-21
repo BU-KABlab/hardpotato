@@ -53,6 +53,6 @@ ocp.run()
 
 fileName = model + "MSCRIPT"
 mscript_file = "ferrocene_test"
-filepath = "D:/GitHub/hardpotato/ferrocene_test.mscr"
+filepath = ".examples/ferrocene_test.mscr"
 mscript = hp.potentiostat.MethodScript(fileName=mscript_file, filepath=filepath)
 mscript.run()
