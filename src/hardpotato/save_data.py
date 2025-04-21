@@ -133,7 +133,6 @@ class MSCRIPT:
         self.fileName = fileName
         self.data = data
         self.model = model
-        data_array = 0
 
     def _parse_mscript_data_to_array(self):
         """
