@@ -1,5 +1,4 @@
 import numpy as np
-import hardpotato.chi760e as chi
 
 
 class Test:
