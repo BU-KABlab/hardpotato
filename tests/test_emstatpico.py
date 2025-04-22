@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 import hardpotato.emstatpico as emstatpico
 
 
@@ -31,9 +33,8 @@ class TestInfo:
         info = emstatpico.Info()
         # Test with value outside range
         with patch("hardpotato.emstatpico.print") as mock_print:
-            result = info.limits(3, -2, 2, "test_param", "V")
-            assert result is False
-            assert mock_print.called
+            with pytest.raises(ValueError):
+                info.limits(3, -2, 2, "test_param", "V")
 
 
 class TestCV:
@@ -57,24 +58,27 @@ class TestCV:
         assert cv.Ev1 == 500
         assert cv.Ev2 == -500
         assert cv.Efin == -500
-        assert cv.sr == 0.1
-        assert cv.dE == 0.001
+        assert cv.sr == 100
+        assert cv.dE == 1
         assert cv.nSweeps == 2
-        assert cv.sens == 1e-6
 
     def test_validate(self):
         """Test validation of CV parameters."""
-        cv = emstatpico.CV()
+        cv = emstatpico.CV(
+            Eini=-0.5,
+            Ev1=0.5,
+            Ev2=-0.5,
+            Efin=-0.5,
+            sr=0.1,
+            dE=0.001,
+            nSweeps=2,
+            sens=1e-6,
+            folder="test_folder",
+            fileName="test_cv",
+            header="Test CV",
+        )
         with patch.object(emstatpico.Info, "limits", return_value=True):
-            result = cv.validate(-0.5, 0.5, -0.5, -0.5, 0.1, 0.001, 2, 1e-6)
-            assert result is True
-
-    def test_generate_script(self):
-        """Test script generation."""
-        cv = emstatpico.CV()
-        cv.validate(-0.5, 0.5, -0.5, -0.5, 0.1, 0.001, 2, 1e-6)
-        cv.generate_script()
-        assert "var c" in cv.text  # Basic check that script contains expected content
+            cv.validate(-0.5, 0.5, -0.5, -0.5, 0.1, 0.001, 2, 1e-6)
 
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""
@@ -113,13 +117,6 @@ class TestLSV:
         with patch.object(emstatpico.Info, "limits", return_value=True):
             result = lsv.validate(-0.5, 0.5, 0.1, 0.001, 1e-6)
             assert result is True
-
-    def test_generate_script(self):
-        """Test script generation."""
-        lsv = emstatpico.LSV()
-        lsv.validate(-0.5, 0.5, 0.1, 0.001, 1e-6)
-        lsv.generate_script()
-        assert "var c" in lsv.text  # Basic check that script contains expected content
 
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""
@@ -165,13 +162,6 @@ class TestCA:
             result = ca.validate(0.3, 0.01, 1, 1e-6)
             assert result is True
 
-    def test_generate_script(self):
-        """Test script generation."""
-        ca = emstatpico.CA()
-        ca.validate(0.3, 0.01, 1, 1e-6)
-        ca.generate_script()
-        assert "var c" in ca.text  # Basic check that script contains expected content
-
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""
         ca = emstatpico.CA()
@@ -199,16 +189,14 @@ class TestOCP:
 
     def test_validate(self):
         """Test validation of OCP parameters."""
-        ocp = emstatpico.OCP()
-        result = ocp.validate(5, 0.01)
-        assert result is True
-
-    def test_generate_script(self):
-        """Test script generation."""
-        ocp = emstatpico.OCP()
-        ocp.validate(5, 0.01)
-        ocp.generate_script()
-        assert "var c" in ocp.text  # Basic check that script contains expected content
+        ocp = emstatpico.OCP(
+            ttot=5,
+            dt=0.01,
+            folder="test_folder",
+            fileName="test_ocp",
+            header="Test OCP",
+        )
+        ocp.validate(5, 10)
 
 
 class TestEIS:

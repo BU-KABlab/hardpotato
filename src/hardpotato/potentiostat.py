@@ -47,6 +47,10 @@ class Info:
             self.info = chi760e.Info()
         elif self.model == "emstatpico":
             self.info = emstatpico.Info()
+        elif self.model == "emstatpico_lr" or self.model == "emstatpico_low_range":
+            self.info = emstatpico.Info(model="low_range")
+        elif self.model == "emstatpico_hr" or self.model == "emstatpico_high_range":
+            self.info = emstatpico.Info(model="high_range")
         else:
             print("Potentiostat model " + model + " not available in the library.")
             print("Available models:", models_available)
@@ -60,17 +64,36 @@ class Setup:
         global folder_save
         folder_save = folder
         global model_pstat
-        model_pstat = model
+
+        # Handle different emstatpico models but maintain backward compatibility
+        if model in ["emstatpico_lr", "emstatpico_low_range"]:
+            model_pstat = "emstatpico"  # Keep the base model name for compatibility
+            self.emstat_type = "low_range"  # Store the specific model type
+        elif model in ["emstatpico_hr", "emstatpico_high_range"]:
+            model_pstat = "emstatpico"  # Keep the base model name for compatibility
+            self.emstat_type = "high_range"  # Store the specific model type
+        else:
+            model_pstat = model
+            self.emstat_type = None
+
         global path_lib
         path_lib = path
         global port_
         port_ = port
+
+        # Store the specific emstatpico model type globally if applicable
+        if self.emstat_type:
+            global emstat_model_type
+            emstat_model_type = self.emstat_type
+
         if verbose:
             self.info()
 
     def info(self):
         print("\n----------")
         print("Potentiostat model: " + model_pstat)
+        if hasattr(self, "emstat_type") and self.emstat_type:
+            print("EmStat model type: " + self.emstat_type.upper())
         print("Potentiostat path: " + path_lib)
         print("Save folder: " + folder_save)
         print("----------\n")

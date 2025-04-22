@@ -30,7 +30,7 @@ class Info:
 
     def limits(self, val, low, high, label, units):
         if val < low or val > high:
-            raise Exception(
+            raise ValueError(
                 label
                 + " should be between "
                 + str(low)
