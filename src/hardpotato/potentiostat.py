@@ -91,11 +91,11 @@ class Setup:
 
     def info(self):
         print("\n----------")
-        print("Potentiostat model: " + model_pstat)
+        print("Potentiostat model: " + str(model_pstat))
         if hasattr(self, "emstat_type") and self.emstat_type:
-            print("EmStat model type: " + self.emstat_type.upper())
-        print("Potentiostat path: " + path_lib)
-        print("Save folder: " + folder_save)
+            print("EmStat model type: " + str(self.emstat_type.upper()))
+        print("Potentiostat path: " + str(path_lib))
+        print("Save folder: " + str(folder_save))
         print("----------\n")
 
 

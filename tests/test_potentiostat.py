@@ -22,9 +22,14 @@ class TestSetup:
             potentiostat.model_pstat = "chi760e"
             potentiostat.path_lib = "path/to/chi"
             potentiostat.folder_save = "/data/folder"
-            setup = potentiostat.Setup(verbose=0)
-            setup.info()
+            potentiostat.Setup(verbose=1)
             assert mock_print.called
+
+    def test_not_printing_info(self):
+        """Test not printing info when verbose is 0."""
+        with patch("hardpotato.potentiostat.print") as mock_print:
+            potentiostat.Setup(verbose=0)
+            assert not mock_print.called
 
 
 class TestTechnique:
