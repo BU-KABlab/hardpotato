@@ -1,4 +1,4 @@
-[![HardPotato Tests](https://github.com/BU-KABlab/hardpotato/actions/workflows/python-app.yml/badge.svg)](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml)
+[![HardPotato Tests](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml/badge.svg)](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml)
 
 # Hard Potato library
 
