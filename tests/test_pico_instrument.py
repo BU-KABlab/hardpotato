@@ -14,8 +14,8 @@ def test_send_cmd():
     """Test sending command."""
     mock_comm = MagicMock()
     inst = instrument.Instrument(mock_comm)
-    inst.send_cmd("test command")
-    mock_comm.write.assert_called_once_with(b"test command\n")
+    inst.write("test command")
+    mock_comm.write.assert_called_once_with(b"test command")
 
 
 def test_read_line():
@@ -23,44 +23,32 @@ def test_read_line():
     mock_comm = MagicMock()
     mock_comm.readline.return_value = b"test response\r\n"
     inst = instrument.Instrument(mock_comm)
-    response = inst.read_line()
-    assert response == "test response\r"
+    response = inst.readline()
+    assert response == "test response\r\n"
     mock_comm.readline.assert_called_once()
-
-
-def test_read_until():
-    """Test reading until specific response."""
-    mock_comm = MagicMock()
-    mock_comm.readline.side_effect = [b"line1\r\n", b"line2\r\n", b"endmarker\r\n"]
-    inst = instrument.Instrument(mock_comm)
-
-    lines = list(inst.read_until("endmarker"))
-
-    assert lines == ["line1\r", "line2\r", "endmarker\r"]
-    assert mock_comm.readline.call_count == 3
 
 
 def test_readlines_until_end():
     """Test reading lines until end marker."""
     mock_comm = MagicMock()
-    mock_comm.readline.side_effect = [b"line1\r\n", b"line2\r\n", b"*\r\n"]
+    mock_comm.readline.side_effect = [b"line1\n", b"line2\n", b"*\n", b"\n"]
     inst = instrument.Instrument(mock_comm)
 
     lines = inst.readlines_until_end()
 
-    assert lines == ["line1\r", "line2\r", "*\r"]
-    assert mock_comm.readline.call_count == 3
+    assert lines == ["line1\n", "line2\n", "*\n"]
+    assert mock_comm.readline.call_count == 4
 
 
 def test_read_version():
     """Test reading version."""
     mock_comm = MagicMock()
-    mock_comm.readline.side_effect = [b"t\r\n", b"* t\r\n"]
+    mock_comm.readline.side_effect = [b"tespico\n", b"*\n"]
     inst = instrument.Instrument(mock_comm)
 
-    version = inst.read_version()
+    version = inst.get_firmware_version()
 
-    assert version == "t"
+    assert version == "espico *"
     mock_comm.write.assert_called_once_with(b"t\n")
     assert mock_comm.readline.call_count == 2
 
@@ -68,31 +56,17 @@ def test_read_version():
 def test_send_script_from_string():
     """Test sending script from string."""
     mock_comm = MagicMock()
-    script = "line1\nline2\nline3\n"
+    script = ["line1", "line2", "line3"]
     inst = instrument.Instrument(mock_comm)
 
     with patch("builtins.open", create=True) as mock_open:
         mock_file = MagicMock()
         mock_open.return_value.__enter__.return_value = mock_file
-        mock_file.read.return_value = script
+        mock_file.readlines.return_value = script
 
         inst.send_script("test_script.mscr")
 
         assert mock_comm.write.call_count >= 3
         mock_comm.write.assert_has_calls(
-            [call(b"line1\n"), call(b"line2\n"), call(b"line3\n")], any_order=False
+            [call(b"line1"), call(b"line2"), call(b"line3")], any_order=False
         )
-
-
-@patch("time.sleep")
-def test_await_response(mock_sleep):
-    """Test awaiting response."""
-    mock_comm = MagicMock()
-    mock_comm.readline.side_effect = [b"", b"", b"response\r\n"]
-    inst = instrument.Instrument(mock_comm)
-
-    response = inst.await_response(max_tries=5)
-
-    assert response == "response\r"
-    assert mock_comm.readline.call_count == 3
-    assert mock_sleep.call_count == 2

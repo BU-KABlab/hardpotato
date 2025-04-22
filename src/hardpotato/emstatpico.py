@@ -273,7 +273,10 @@ class CA:
     def __init__(
         self, Estep, dt, ttot, sens, folder, fileName, header, path_lib=None, **kwargs
     ):
-        """ """
+        """
+        Potential based variables need to be changed to mV int(Eini*100).
+
+        """
         self.Estep = int(Estep * 1000)
         self.dt = int(dt * 1000)
         self.ttot = int(ttot * 1000)
@@ -394,6 +397,8 @@ class CA:
 class LSV:
     """
     Emstat Pico LSV class
+
+    NOTE: SI units are converted to mV, mA, mS for the EmStat Pico.
 
     Parameters:
         Eini: Initial potential (V)
@@ -558,8 +563,8 @@ class OCP:
     """
 
     def __init__(self, ttot, dt, folder, fileName, header, path_lib=None, **kwargs):
-        dt = int(dt * 1000)
-        ttot = int(ttot * 1000)
+        self.dt = int(dt * 1000)
+        self.ttot = int(ttot * 1000)
         self.text = ""
 
         self.validate(ttot, dt)
@@ -568,9 +573,9 @@ class OCP:
         self.pre_body = "set_pgstat_mode 4\ncell_off\ntimer_start\n"
         self.body = (
             "meas_loop_ocp p "
-            + str(dt)
+            + str(self.dt)
             + "m "
-            + str(ttot)
+            + str(self.ttot)
             + "m "
             + "\n\tpck_start\n\ttimer_get a\n\tpck_add a\n\tpck_add p"
             + "\n\tpck_end\nendloop\non_finished:\ncell_off\n\n"
@@ -621,6 +626,16 @@ class EIS:
         path_lib,
         **kwargs,
     ):
+        self.Eini = int(Eini * 1000)
+        self.ch = ch
+        self.low_freq = low_freq
+        self.high_freq = high_freq
+        self.amplitude = amplitude
+        self.sens = sens
+        self.text = ""
+        self.path_lib = path_lib
+        self.validate(Eini, ch, low_freq, high_freq, amplitude, sens)
+
         if ch == 0:
             self.text = "e\nvar h\nvar r\nvar j\nset_pgstat_chan 1\nset_pgstat_mode 0\nset_pgstat_chan 0\nset_pgstat_mode 3\nset_max_bandwidth 200k\nset_range_minmax da 0 0\nset_range ba 2950u\nset_autoranging ba 2950u 2950u\nset_range ab 4200m\nset_autoranging ab 4200m 4200m\nset_e 0\ncell_on\nmeas_loop_eis h r j 100m 200k 100 31 0\n  pck_start\n    pck_add h\n    pck_add r\n    pck_add j\n  pck_end\nendloop\non_finished:\n  cell_off\n\n"
         elif ch == 1:

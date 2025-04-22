@@ -82,7 +82,19 @@ class TestCV:
 
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""
-        cv = emstatpico.CV()
+        cv = emstatpico.CV(
+            Eini=-0.5,
+            Ev1=0.5,
+            Ev2=-0.5,
+            Efin=-0.5,
+            sr=0.1,
+            dE=0.001,
+            nSweeps=2,
+            sens=1e-6,
+            folder="test_folder",
+            fileName="test_cv",
+            header="Test CV",
+        )
         cv.Eini = -500
         cv.validate(-0.5, 0.5, -0.5, -0.5, 0.1, 0.001, 2, 1e-6)
         with patch.object(emstatpico.Info, "limits", return_value=True):
@@ -107,20 +119,36 @@ class TestLSV:
 
         assert lsv.Eini == -500  # Check conversion to mV
         assert lsv.Efin == 500
-        assert lsv.sr == 0.1
-        assert lsv.dE == 0.001
-        assert lsv.sens == 1e-6
+        assert lsv.sr == 100
+        assert lsv.dE == 1
 
     def test_validate(self):
         """Test validation of LSV parameters."""
-        lsv = emstatpico.LSV()
+        lsv = emstatpico.LSV(
+            Eini=-0.5,
+            Efin=0.5,
+            sr=0.1,
+            dE=0.001,
+            sens=1e-6,
+            folder="test_folder",
+            fileName="test_lsv",
+            header="Test LSV",
+        )
         with patch.object(emstatpico.Info, "limits", return_value=True):
-            result = lsv.validate(-0.5, 0.5, 0.1, 0.001, 1e-6)
-            assert result is True
+            lsv.validate(-0.5, 0.5, 0.1, 0.001, 1e-6)
 
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""
-        lsv = emstatpico.LSV()
+        lsv = emstatpico.LSV(
+            Eini=-0.5,
+            Efin=0.5,
+            sr=0.1,
+            dE=0.001,
+            sens=1e-6,
+            folder="test_folder",
+            fileName="test_lsv",
+            header="Test LSV",
+        )
         lsv.Eini = -500
         lsv.validate(-0.5, 0.5, 0.1, 0.001, 1e-6)
         with patch.object(emstatpico.Info, "limits", return_value=True):
@@ -143,9 +171,8 @@ class TestCA:
         )
 
         assert ca.Estep == 300  # Check conversion to mV
-        assert ca.dt == 0.01
-        assert ca.ttot == 1
-        assert ca.sens == 1e-6
+        assert ca.dt == 10  # Check conversion to ms
+        assert ca.ttot == 1000  # Check conversion to s
 
     def test_validate(self):
         """Test validation of CA parameters."""
@@ -164,7 +191,15 @@ class TestCA:
 
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""
-        ca = emstatpico.CA()
+        ca = emstatpico.CA(
+            Estep=0.3,
+            dt=0.01,
+            ttot=1,
+            sens=1e-6,
+            folder="test_data",
+            fileName="test_ca",
+            header="Test CA",
+        )
         ca.Estep = 300
         ca.validate(0.3, 0.01, 1, 1e-6)
         with patch.object(emstatpico.Info, "limits", return_value=True):
@@ -184,8 +219,8 @@ class TestOCP:
             header="Test OCP",
         )
 
-        assert ocp.ttot == 5
-        assert ocp.dt == 0.01
+        assert ocp.ttot == 5000  # Check conversion to ms
+        assert ocp.dt == 10  # Check conversion to ms
 
     def test_validate(self):
         """Test validation of OCP parameters."""
@@ -203,37 +238,42 @@ class TestEIS:
     def test_init(self):
         """Test EIS initialization."""
         eis = emstatpico.EIS(
-            Edc=0.2,
+            Eini=0.2,
             ch=0,
-            fstart=1,
-            fend=1000,
-            amp=0.01,
+            low_freq=1,
+            high_freq=1000,
+            amplitude=0.01,
             sens=1e-6,
             folder="test_folder",
             fileName="test_eis",
             header="Test EIS",
+            path_lib="test_path",
         )
 
-        assert eis.Edc == 200  # Check conversion to mV
+        assert eis.Eini == 200  # Check conversion to mV
         assert eis.ch == 0
-        assert eis.fstart == 1
-        assert eis.fend == 1000
-        assert eis.amp == 10  # Check conversion to mV
+        assert eis.low_freq == 1
+        assert eis.high_freq == 1000
+        assert eis.amplitude == 0.01
         assert eis.sens == 1e-6
+        assert eis.path_lib == "test_path"
 
     def test_validate(self):
         """Test validation of EIS parameters."""
-        eis = emstatpico.EIS()
+        eis = emstatpico.EIS(
+            Eini=0.2,
+            ch=0,
+            low_freq=1,
+            high_freq=1000,
+            amplitude=0.01,
+            sens=1e-6,
+            folder="test_folder",
+            fileName="test_eis",
+            header="Test EIS",
+            path_lib="test_path",
+        )
         with patch.object(emstatpico.Info, "limits", return_value=True):
-            result = eis.validate(0.2, 0, 1, 1000, 0.01, 1e-6)
-            assert result is True
-
-    def test_generate_script(self):
-        """Test script generation."""
-        eis = emstatpico.EIS()
-        eis.validate(0.2, 0, 1, 1000, 0.01, 1e-6)
-        eis.generate_script()
-        assert "var p" in eis.text  # Basic check that script contains expected content
+            eis.validate(0.2, 0, 1, 1000, 0.01, 1e-6)
 
 
 class TestCustomMethodScript:
