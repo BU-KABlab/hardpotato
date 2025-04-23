@@ -44,12 +44,18 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # Standard library imports
 import logging
 import time
-
+from typing import Any, List, Optional
 
 LOG = logging.getLogger(__name__)
 
 
 class DeviceType:
+    """Enumeration of supported PalmSens device types.
+
+    This class contains string constants representing the different
+    device types that can be identified by the firmware version.
+    """
+
     UNKNOWN = "unknown device"
     EMSTAT_PICO = "EmStat Pico"
     EMSTAT4_HR = "EmStat4 HR"
@@ -70,7 +76,11 @@ _FIRMWARE_VERSION_TO_DEVICE_TYPE_MAPPING = [
 
 
 class CommunicationError(Exception):
-    """Generic communication error class."""
+    """Generic communication error class.
+
+    This exception is raised when there's an error in the communication
+    protocol between the computer and the device.
+    """
 
 
 class CommunicationTimeout(Exception):
@@ -99,20 +109,49 @@ class Instrument:
     two methods:
         - write(data: bytes)
         - readline() -> bytes
+
+    Attributes:
+        comm: Communication object that handles low-level communication.
+        firmware_version: Cached firmware version string.
+        device_type: Cached device type string from DeviceType.
+
+    Examples:
+        ```python
+        from hardpotato.pico_serial import Serial
+        from hardpotato.pico_instrument import Instrument
+
+        # Using with a serial port
+        with Serial('COM3', 1) as comm:
+            device = Instrument(comm)
+            firmware = device.get_firmware_version()
+            device_type = device.get_device_type()
+            print(f"Device: {device_type}, Firmware: {firmware}")
+
+            # Run a script
+            device.send_script('my_script.mscr')
+            results = device.readlines_until_end()
+        ```
     """
 
-    def __init__(self, comm):
-        """Initialize the object.
+    def __init__(self, comm: Any) -> None:
+        """Initialize the Instrument communication interface.
 
-        `comm` must be a communication object as described in the
-        documentation of this class.
+        Args:
+            comm: Communication object that must implement:
+                - write(data: bytes): Write data to the device
+                - readline() -> bytes: Read a line from the device
         """
         self.comm = comm
-        self.firmware_version = None
-        self.device_type = DeviceType.UNKNOWN
+        self.firmware_version: Optional[str] = None
+        self.device_type: str = DeviceType.UNKNOWN
 
-    def write(self, text: str):
-        """Write to device."""
+    def write(self, text: str) -> None:
+        """Write a text string to the device.
+
+        Args:
+            text: The text string to send to the device.
+                 Should contain only ASCII characters.
+        """
         # The text is encoded using ASCII encoding, since all MethodSCRIPT
         # commands are plain ASCII text. String literals (as used in the
         # `send_string` command) and comments *could* contain non-ASCII
@@ -126,13 +165,26 @@ class Instrument:
         LOG.debug("TX: %r", data)
         self.comm.write(data)
 
-    def writelines(self, lines):
-        """Write multiple lines to the device."""
+    def writelines(self, lines: List[str]) -> None:
+        """Write multiple lines to the device.
+
+        Args:
+            lines: List of text strings to send to the device.
+                  Each string should contain only ASCII characters.
+        """
         for line in lines:
             self.write(line)
 
     def readline(self) -> str:
-        """Read one response line from the device."""
+        """Read one response line from the device.
+
+        Returns:
+            A string containing the line received from the device.
+
+        Raises:
+            CommunicationTimeout: If no data was received within the timeout period.
+            CommunicationError: If the received data doesn't end with a newline character.
+        """
         # Read line using the raw serial interface.
         data = self.comm.readline()
         # If we received data (i.e., no timeout), log it for debugging.
@@ -149,8 +201,20 @@ class Instrument:
             raise CommunicationError("No EOL character received.")
         return line
 
-    def readlines_until_end(self):
-        """Receive all lines until an empty line is received."""
+    def readlines_until_end(self) -> List[str]:
+        """Receive all lines until an empty line is received.
+
+        This method reads lines from the device until an empty line
+        (just a newline character) is received, which indicates the
+        end of the response.
+
+        Returns:
+            A list of strings, with each string representing a line from the device.
+
+        Note:
+            This method handles CommunicationTimeout exceptions internally and
+            continues trying to read until a complete response is received.
+        """
         lines = []
         print("Reading")
         while True:
@@ -165,7 +229,16 @@ class Instrument:
         print("Finished reading")
         return lines
 
-    def _update_firmware_version_and_device_type(self, force=False):
+    def _update_firmware_version_and_device_type(self, force: bool = False) -> None:
+        """Update the firmware version and device type information.
+
+        Args:
+            force: If True, the firmware version will be read from the device
+                  even if it's already cached.
+
+        Raises:
+            CommunicationError: If the device gives an unexpected response.
+        """
         # First get the firmware version string from the device.
         if force or not self.firmware_version:
             self.write("t\n")
@@ -184,53 +257,91 @@ class Instrument:
             else:
                 self.device_type = DeviceType.UNKNOWN
 
-    def get_firmware_version(self, force=False):
+    def get_firmware_version(self, force: bool = False) -> str:
         """Get the device firmware version.
 
         The result of this call is cached. If it is changed on the device, use
         `force=true` to force reading it from the device again.
+
+        Args:
+            force: If True, the firmware version will be read from the device
+                  even if it's already cached.
+
+        Returns:
+            A string containing the firmware version.
         """
         self._update_firmware_version_and_device_type(force=force)
         return self.firmware_version
 
-    def get_device_type(self, force=False):
+    def get_device_type(self, force: bool = False) -> str:
         """Get the device type.
 
         The result of this call is cached. If it is changed on the device, use
         `force=true` to force reading it from the device again.
+
+        Args:
+            force: If True, the device type will be determined from the device
+                  even if it's already cached.
+
+        Returns:
+            A string from DeviceType indicating the type of device.
         """
         self._update_firmware_version_and_device_type(force=force)
         return self.device_type
 
-    def get_mscript_version(self):
+    def get_mscript_version(self) -> int:
+        """Get the MethodSCRIPT version supported by the device.
+
+        Returns:
+            An integer representing the MethodSCRIPT version.
+        """
         self.write("v\n")
         response = self.readline()
         return int(response[1:-1])
 
-    def get_serial_number(self):
-        """Read the EmStat Pico serial number."""
+    def get_serial_number(self) -> str:
+        """Read the device serial number.
+
+        Returns:
+            A string containing the serial number.
+        """
         self.write("i\n")
         return self.readline()[1:-1]
 
-    def get_register(self, register):
-        """Get the value of a register."""
+    def get_register(self, register: int) -> str:
+        """Get the value of a device register.
+
+        Args:
+            register: The register number to read.
+
+        Returns:
+            A string containing the register value.
+        """
         self.write("G%02d\n" % register)
         return self.readline()[1:-1]
 
-    def load_mscript_from_flash(self):
-        """Load the MethodSCRIPT from flash to RAM."""
+    def load_mscript_from_flash(self) -> None:
+        """Load the MethodSCRIPT from flash memory to RAM.
+
+        This loads a previously stored script from the device's flash memory
+        into RAM, but does not execute it.
+        """
         self.write("Lmscr\n")
         self.readline()
         # TODO: check response!
 
-    def run_mscript_from_flash(self):
-        """Load the MethodSCRIPT from flash to RAM and execute it."""
+    def run_mscript_from_flash(self) -> None:
+        """Load and execute the MethodSCRIPT from flash memory.
+
+        This loads a previously stored script from the device's flash memory
+        into RAM and then executes it.
+        """
         self.write("Lmscr\n")
         self.readline()
         # TODO: check response!
         self.write("r\n")
 
-    def send_script(self, path):
+    def send_script(self, path: str) -> None:
         """Read a script from file and send it to the device.
 
         Note that the file should contain ASCII characters only. Other
@@ -238,12 +349,15 @@ class Instrument:
         any common end-of-line style (e.g. Unix or Windows line endings).
         The lines written to the device will always use '\n' line endings
         (Linux format).
+
+        Args:
+            path: Path to the MethodSCRIPT file to send to the device.
         """
         with open(path, "rt", encoding="ascii") as file:
             lines = file.readlines()
         self.writelines(lines)
 
-    def abort_and_sync(self):
+    def abort_and_sync(self) -> None:
         """Abort a possibly running script and wait for it to finish.
 
         This method tries to get the device in a known valid state by sending an

@@ -1,3 +1,5 @@
+[![HardPotato Tests](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml/badge.svg)](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml)
+
 # Hard Potato library
 
 Welcome to the hardpotato GitHub repository. Hard Potato is an open source Python
