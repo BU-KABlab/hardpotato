@@ -62,14 +62,14 @@ class Info:
         E_max: Maximum potential value in V.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, model="low_range") -> None:
         """Initialize the Info class with Emstat Pico specifications."""
         self.tech: List[str] = ["CV", "CA", "LSV", "OCP", "EIS"]
         self.options: List[str] = [
             "mode (low_speed, high_speed, max_range)",
         ]
         self.model = (
-            self.model.lower()
+            model.lower()
         )  # Convert to lowercase for case-insensitive comparison
 
         # Set specifications based on model
