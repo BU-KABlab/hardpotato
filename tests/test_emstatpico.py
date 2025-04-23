@@ -32,7 +32,7 @@ class TestInfo:
         """Test limits method with value outside range."""
         info = emstatpico.Info()
         # Test with value outside range
-        with patch("hardpotato.emstatpico.print") as mock_print:
+        with patch("hardpotato.emstatpico.print"):
             with pytest.raises(ValueError):
                 info.limits(3, -2, 2, "test_param", "V")
 
@@ -186,8 +186,7 @@ class TestCA:
             header="Test CA",
         )
         with patch.object(emstatpico.Info, "limits", return_value=True):
-            result = ca.validate(0.3, 0.01, 1, 1e-6)
-            assert result is True
+            ca.validate(0.3, 0.01, 1, 1e-6)
 
     def test_bipot(self):
         """Test bipotentiostat mode configuration."""

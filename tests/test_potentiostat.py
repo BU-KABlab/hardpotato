@@ -8,9 +8,7 @@ class TestSetup:
     def test_init(self):
         """Test Setup initialization."""
         with patch("hardpotato.potentiostat.print") as mock_print:
-            setup = potentiostat.Setup(
-                "chi760e", "path/to/chi", "/data/folder", verbose=1
-            )
+            potentiostat.Setup("chi760e", "path/to/chi", "/data/folder", verbose=1)
             assert potentiostat.model_pstat == "chi760e"
             assert potentiostat.path_lib == "path/to/chi"
             assert potentiostat.folder_save == "/data/folder"

@@ -672,9 +672,9 @@ class MethodScript(Technique):
                 print("File " + fileName + " is not a MethodScript file.")
                 return
 
-            self.tech = emstatpico.CustomMethodScript(filepath)
-            Technique.__init__(self, text=self.tech.text, fileName=fileName)
-            self.technique = fileName.split(".")[0]
+            self.tech = emstatpico.CustomMethodScript(self.filepath)
+            Technique.__init__(self, text=self.tech.text, fileName=self.fileName)
+            self.technique = self.fileName.split(".")[0]
         else:
             print("Potentiostat model " + model_pstat + " does not have MethodScript.")
 

@@ -267,7 +267,7 @@ class NPV:
             "C\x02\0\0\nfolder: "
             + folder
             + "\n"
-            + fileOverride
+            # + fileOverride
             + "header: "
             + header
             + "\n\n"
@@ -383,10 +383,10 @@ class OCP:
             qt = kwargs.get("qt")
         else:
             qt = 2
-        if "resistance" in kwargs:
-            resistance = kwargs.get("resistance")
-        else:
-            resistance = 0
+        # if "resistance" in kwargs:
+        #     resistance = kwargs.get("resistance")
+        # else:
+        #     resistance = 0
 
         self.head = (
             "C\x02\0\0\nfolder: "

@@ -363,6 +363,6 @@ class OCP:
         self.text = self.head + self.body + self.foot
 
     def validate(self, ttot, dt):
-        info = Info()
+        _ = Info()
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
