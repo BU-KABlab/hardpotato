@@ -20,7 +20,8 @@ dependencies = [
     "matplotlib",
     "softpotato",
     "pyserial",
-    "ruff"
+    "ruff",
+    "pytest>=8.3.5",
 ]
 
 requires-python = ">=3.10"

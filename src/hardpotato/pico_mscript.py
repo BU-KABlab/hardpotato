@@ -54,9 +54,7 @@ import numpy as np
 
 # Custom types
 VarType = collections.namedtuple("VarType", ["id", "name", "unit"])
-MScriptVar = collections.namedtuple(
-    "MScriptVar", ["type", "value", "value_string", "metadata"]
-)
+
 
 # Dictionary for the conversion of the SI prefixes.
 SI_PREFIX_FACTOR = {

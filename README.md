@@ -2,6 +2,8 @@
 
 # Hard Potato library
 
+[![HardPotato Tests](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml/badge.svg)](https://github.com/BU-KABlab/hardpotato/actions/workflows/pytest-ruff-lint.yml)
+
 Welcome to the hardpotato GitHub repository. Hard Potato is an open source Python
 API to control commercially available potentiostats. It enables researchers to
 write Python scripts that can include experimentation, immediate data analysis

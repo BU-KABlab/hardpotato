@@ -68,6 +68,10 @@ class Info:
             self.info = chi760e.Info()
         elif self.model == "emstatpico":
             self.info = emstatpico.Info()
+        elif self.model == "emstatpico_lr" or self.model == "emstatpico_low_range":
+            self.info = emstatpico.Info(model="low_range")
+        elif self.model == "emstatpico_hr" or self.model == "emstatpico_high_range":
+            self.info = emstatpico.Info(model="high_range")
         else:
             print("Potentiostat model " + model + " not available in the library.")
             print("Available models:", models_available)
@@ -125,11 +129,28 @@ class Setup:
         global folder_save
         folder_save = folder
         global model_pstat
-        model_pstat = model
+
+        # Handle different emstatpico models but maintain backward compatibility
+        if model in ["emstatpico_lr", "emstatpico_low_range"]:
+            model_pstat = "emstatpico"  # Keep the base model name for compatibility
+            self.emstat_type = "low_range"  # Store the specific model type
+        elif model in ["emstatpico_hr", "emstatpico_high_range"]:
+            model_pstat = "emstatpico"  # Keep the base model name for compatibility
+            self.emstat_type = "high_range"  # Store the specific model type
+        else:
+            model_pstat = model
+            self.emstat_type = None
+
         global path_lib
         path_lib = path
         global port_
         port_ = port
+
+        # Store the specific emstatpico model type globally if applicable
+        if self.emstat_type:
+            global emstat_model_type
+            emstat_model_type = self.emstat_type
+
         if verbose:
             self.info()
         else:
@@ -142,10 +163,11 @@ class Setup:
         including the model, path, and save folder location.
         """
         print("\n----------")
-        print("Potentiostat model: " + model_pstat)
-        print("Potentiostat path: " + path_lib)
-        print("Save folder: " + folder_save)
-        print("Connection Established: " + str(self.check_connection()))
+        print("Potentiostat model: " + str(model_pstat))
+        if hasattr(self, "emstat_type") and self.emstat_type:
+            print("EmStat model type: " + str(self.emstat_type.upper()))
+        print("Potentiostat path: " + str(path_lib))
+        print("Save folder: " + str(folder_save))
         print("----------\n")
 
     def check_connection(self) -> bool:
@@ -219,17 +241,18 @@ class Technique:
         Instead, use specific technique classes like CV, LSV, CA, etc.
     """
 
-    def __init__(self, text: str = "", fileName: str = "CV") -> None:
-        """Initialize the Technique base class.
-
-        Args:
+    def __init__(self, text="", fileName="CV", plot_results: Optional[bool] = False):
+        """
+        Parameters:
             text: The script text for the potentiostat.
             fileName: The base name for saving files.
+            plot_results: Flag indicating if results should be plotted after running the technique.
         """
         self.text = text  # text to write as macro
         self.fileName = fileName
         self.technique = "Technique"
         self.bpot = False
+        self.plot_results = plot_results
 
     def writeToFile(self) -> None:
         """Write the technique script to a file.
@@ -293,7 +316,8 @@ class Technique:
                 bpot=self.bpot,
             )
             self.message(start=False)
-            self.plot()
+            if self.plot_results:
+                self.plot()
         else:
             print("\nNo potentiostat selected. Aborting.")
 
@@ -1062,9 +1086,9 @@ class MethodScript(Technique):
 
     def __init__(
         self,
-        folder: Optional[str],
-        fileName: Optional[str],
-        filepath: Optional[str],
+        folder: Optional[str] = None,
+        fileName: Optional[str] = None,
+        filepath: Optional[str] = None,
         header="MethodScript",
     ):
         self.header = header
@@ -1073,48 +1097,73 @@ class MethodScript(Technique):
             # self.folder = filepath.split("/")[:-1]
             self.fileName = self.filepath.split("/")[-1]
         else:
-            self.fileName = fileName
+            self.fileName = fileName.split(".")[0]
             self.filepath = folder_save + "/" + fileName + ".mscr"
         self.technique = "MethodScript"
 
         if model_pstat == "emstatpico":
             # Check if the file exists
             try:
-                with open(fileName, "r") as _:
+                with open(filepath, "r") as _:
                     pass
             except FileNotFoundError:
                 print("File " + fileName + " not found.")
-                return
+                raise FileNotFoundError
 
             # Check if the file is a MethodScript file
-            if not fileName.endswith(".mscr"):
+            if not filepath.endswith(".mscr"):
                 print("File " + fileName + " is not a MethodScript file.")
                 return
 
-            self.tech = emstatpico.CustomMethodScript(fileName)
-            Technique.__init__(self, text=self.tech.text, fileName=fileName)
+            self.tech = emstatpico.CustomMethodScript(self.filepath)
+            Technique.__init__(self, text=self.tech.text, fileName=self.fileName)
+            self.technique = self.fileName.split(".")[0]
         else:
             print("Potentiostat model " + model_pstat + " does not have MethodScript.")
 
-    def run(self):
-        if model_pstat == "emstatpico":
-            self.writeToFile()
-            if port_ is None:
-                self.port = serial.auto_detect_port()
-            with serial.Serial(self.port, 1) as comm:
-                dev = instrument.Instrument(comm)
-                dev.send_script(self.filepath)
-                result = dev.readlines_until_end()
-            self.data = mscript.parse_result_lines(result)
-            fileName = folder_save + "/" + self.fileName + ".txt"
-            save_data.Save(
-                self.data,
-                fileName,
-                self.header,
-                model_pstat,
-                self.technique,
-                bpot=self.bpot,
-            )
-            self.plot()
-        else:
-            print("Potentiostat model " + model_pstat + " does not have MethodScript.")
+    # def run(self):
+    #     if model_pstat == "emstatpico":
+    #         self.message()
+
+    #         self.writeToFile()
+    #         if port_ is None:
+    #             self.port = serial.auto_detect_port()
+    #         with serial.Serial(self.port, 1) as comm:
+    #             dev = instrument.Instrument(comm)
+    #             dev.send_script(self.filepath)
+    #             result = dev.readlines_until_end()
+    #         self.data = mscript.parse_result_lines(result)
+    #         fileName = folder_save + "/" + self.fileName + ".txt"
+    #         save_data.Save(
+    #             self.data,
+    #             fileName,
+    #             self.header,
+    #             model_pstat,
+    #             self.technique,
+    #             bpot=self.bpot,
+    #         )
+    #         if self.plot_results:
+    #             self.plot()
+    #         self.message(start=False)
+
+    #         self.writeToFile()
+    #         if port_ is None:
+    #             self.port = serial.auto_detect_port()
+    #         with serial.Serial(self.port, 1) as comm:
+    #             dev = instrument.Instrument(comm)
+    #             dev.send_script(folder_save + "/" + self.fileName + ".mscr")
+    #             result = dev.readlines_until_end()
+    #         self.data = mscript.parse_result_lines(result)
+    #         fileName = folder_save + "/" + self.fileName + ".txt"
+    #         save_data.Save(
+    #             self.data,
+    #             fileName,
+    #             self.header,
+    #             model_pstat,
+    #             self.technique,
+    #             bpot=self.bpot,
+    #         )
+    #         self.message(start=False)
+
+    #     else:
+    #         print("Potentiostat model " + model_pstat + " does not have MethodScript.")

@@ -216,12 +216,17 @@ class Instrument:
             continues trying to read until a complete response is received.
         """
         lines = []
+        timeout_attempts = 0
         print("Reading")
         while True:
             # print('Reading')
             try:
                 line = self.readline()
             except CommunicationTimeout:
+                timeout_attempts += 1
+                if timeout_attempts > 10:
+                    print("Timeout")
+                    break
                 continue
             if line == "\n":
                 break

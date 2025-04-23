@@ -15,12 +15,12 @@ class Test:
 
 def check_connection(path: str) -> bool:
     """Check if a connection can be made to the CHI760E potentiostat.
-    
+
     This function checks if the required CHI software exists at the specified path.
-    
+
     Args:
         path: The path to the CHI software installation.
-        
+
     Returns:
         bool: True if the connection check is successful, False otherwise.
     """
@@ -97,7 +97,7 @@ class Info:
             Exception: If the value is outside the allowed limits.
         """
         if val < low or val > high:
-            raise Exception(
+            raise ValueError(
                 label
                 + " should be between "
                 + str(low)
@@ -868,10 +868,10 @@ class OCP:
             qt = kwargs.get("qt")
         else:
             qt = 2
-        if "resistance" in kwargs:
-            resistance = kwargs.get("resistance")
-        else:
-            resistance = 0
+        # if "resistance" in kwargs:
+        #     resistance = kwargs.get("resistance")
+        # else:
+        #     resistance = 0
 
         self.head = (
             "C\x02\0\0\nfolder: "
@@ -910,9 +910,10 @@ class OCP:
         Raises:
             Exception: If any parameter is outside the allowed limits.
         """
-        info = Info()
+        _ = Info()
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
+        pass
 
 
 class EIS:

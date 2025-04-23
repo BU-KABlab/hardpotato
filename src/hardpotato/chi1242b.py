@@ -98,7 +98,7 @@ class Info:
             Exception: If the parameter value is outside the specified limits
         """
         if val < low or val > high:
-            raise Exception(
+            raise ValueError(
                 label
                 + " should be between "
                 + str(low)
@@ -503,6 +503,6 @@ class OCP:
         self.text = self.head + self.body + self.foot
 
     def validate(self, ttot, dt):
-        info = Info()
+        _ = Info()
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')

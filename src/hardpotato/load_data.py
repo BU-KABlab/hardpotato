@@ -62,6 +62,8 @@ class Read:
                 self.y = np.array([])
         elif model == "emstatpico":
             self.data = np.loadtxt(self.file_path, delimiter=self.delimiter)
+            if self.data == []:
+                print("File is empty")
             self.t = self.data[:, 0]
             self.E = self.data[:, 1]
             self.i = self.data[:, 2:]
@@ -83,7 +85,6 @@ class Read:
         """
         file = open(self.file_path, "r")
         count = 0
-        flag = 0
         for line in file:
             count += 1
             if text in line:
