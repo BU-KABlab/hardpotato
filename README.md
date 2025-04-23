@@ -32,6 +32,10 @@ For the CHI601E and CHI760E only:
 
 - Normal pulse voltammetry, NPV
 
+For Emstat Pico Variants only:
+
+- Custom MethodScript to perform compound or complex techniques
+
 # Installation
 
 ## Original from PyPi
