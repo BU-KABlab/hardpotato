@@ -36,9 +36,15 @@ class Read:
                 self.y = np.array([])
         elif model == "emstatpico":
             self.data = np.loadtxt(self.file_path, delimiter=self.delimiter)
-            self.t = self.data[:, 0]
-            self.E = self.data[:, 1]
-            self.i = self.data[:, 2:]
+            if self.data.size == 0:
+                print("File is empty")
+                self.t = np.array([])
+                self.E = np.array([])
+                self.i = np.array([])
+            else:
+                self.t = self.data[:, 0]
+                self.E = self.data[:, 1]
+                self.i = self.data[:, 2:]
         else:
             self.data = np.loadtxt(
                 self.file_path, delimiter=self.delimiter, skiprows=self.skiprows
