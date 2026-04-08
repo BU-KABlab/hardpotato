@@ -7,26 +7,45 @@ class Test:
 
 class Info:
     """
-    Pending:
-    * Calculate dE, sr, dt, ttot, mins and max
+    Information class for the Emstat Pico potentiostat.
+    
+    Contains specifications and validation functionality for the
+    Emstat Pico potentiostat, including available techniques, options, and
+    parameter limits.
     """
 
-    def __init__(self):
-        self.tech = ["CV", "CA", "LSV", "OCP"]
+    def __init__(self, model="low_range"):
+        """Initialize the Info class with Emstat Pico specifications.
+        
+        Args:
+            model: Model variant - "low_range" (default) for EmStat Pico,
+                   "high_range" or "hr" for EmStat4 HR.
+        """
+        self.tech = ["CV", "CA", "LSV", "OCP", "EIS"]
         self.options = [
             "mode (low_speed, high_speed, max_range)",
         ]
+        self.model = model.lower()
 
-        self.E_min = -1.7
-        self.E_max = 2
-        # self.sr_min = 0.000001
-        # self.sr_max = 10
-        # self.dE_min =
-        # self.sr_min =
-        # self.dt_min =
-        # self.dt_max =
-        # self.ttot_min =
-        # self.ttot_max =
+        # Set specifications based on model
+        if self.model == "high_range" or self.model == "hr":
+            # EmStat4 HR (High Range) specifications
+            self.E_min = -6.0  # V
+            self.E_max = 6.0  # V
+            self.i_min = 0.0000001  # A (100 nA)
+            self.i_max = 0.1  # A (100 mA)
+            self.compliance_voltage = 8.0  # V
+        else:
+            # EmStat Pico (Low Range/Standard) specifications
+            self.E_min = -1.7  # V
+            self.E_max = 2.0  # V
+            self.i_min = 0.0000001  # A (100 nA)
+            self.i_max = 0.005  # A (5 mA)
+            self.compliance_voltage = 2.3  # V
+
+        # EIS frequency range
+        self.freq_min = 0.00000001  # Hz (10 µHz)
+        self.freq_max = 200000  # Hz (200 kHz)
 
     def limits(self, val, low, high, label, units):
         if val < low or val > high:
@@ -47,8 +66,15 @@ class Info:
             )
 
     def specifications(self):
-        print("Model: PalmSens Emstat Pico (emstatpico)")
-        print("Techiques available:", self.tech)
+        if self.model == "high_range" or self.model == "hr":
+            print("Model: PalmSens EmStat4 HR (High Range)")
+        else:
+            print("Model: PalmSens EmStat Pico")
+        print(f"Potential range: {self.E_min} V to {self.E_max} V")
+        print(f"Current range: {self.i_min} A to {self.i_max} A")
+        print(f"Compliance voltage: {self.compliance_voltage} V")
+        print(f"EIS frequency range: {self.freq_min} Hz to {self.freq_max} Hz")
+        print("Techniques available:", self.tech)
         print("Options available:", self.options)
 
 

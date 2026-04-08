@@ -32,9 +32,19 @@ class Test:
 
 
 class Info:
-    """ """
+    """Information class for potentiostats.
+
+    Provides access to specifications and information about
+    the selected potentiostat model.
+    """
 
     def __init__(self, model):
+        """Initialize the Info class for a specific potentiostat model.
+
+        Args:
+            model: The potentiostat model name (e.g., "chi760e", "emstatpico",
+                   "emstatpico_hr" for high range variant).
+        """
         self.model = model
         if self.model == "chi1205b":
             self.info = chi1205b.Info()
@@ -46,11 +56,16 @@ class Info:
             self.info = chi760e.Info()
         elif self.model == "emstatpico":
             self.info = emstatpico.Info()
+        elif self.model in ["emstatpico_lr", "emstatpico_low_range"]:
+            self.info = emstatpico.Info(model="low_range")
+        elif self.model in ["emstatpico_hr", "emstatpico_high_range"]:
+            self.info = emstatpico.Info(model="high_range")
         else:
             print("Potentiostat model " + model + " not available in the library.")
             print("Available models:", models_available)
 
     def specifications(self):
+        """Display the specifications of the potentiostat."""
         self.info.specifications()
 
 
