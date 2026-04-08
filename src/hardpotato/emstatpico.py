@@ -487,3 +487,40 @@ class EIS:
         info.limits(fstart, info.freq_min, info.freq_max, "fstart", "Hz")
         info.limits(fend, info.freq_min, info.freq_max, "fend", "Hz")
         return True
+
+
+class CustomMethodScript:
+    """Custom MethodScript class for running user-defined scripts.
+
+    This class allows users to run their own MethodScript files on the
+    EmStat Pico, enabling complex or compound electrochemical techniques.
+
+    Examples:
+        >>> script = emstatpico.CustomMethodScript("my_script.mscr")
+        >>> print(script.text)
+    """
+
+    def __init__(self, filepath: str) -> None:
+        """Initialize with a MethodScript file.
+
+        Args:
+            filepath: Path to the MethodScript file.
+
+        Raises:
+            FileNotFoundError: If the script file is not found.
+        """
+        self.text = ""
+        self.load_script(filepath)
+
+    def load_script(self, filepath: str) -> None:
+        """Load a MethodScript file.
+
+        Args:
+            filepath: Path to the MethodScript file.
+        """
+        try:
+            with open(filepath, "r") as file:
+                script = file.read()
+            self.text = script
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Script file {filepath} not found.")

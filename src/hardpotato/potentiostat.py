@@ -755,6 +755,47 @@ class EIS(Technique):
             print("Potentiostat model " + model_pstat + " does not have EIS.")
 
 
+class MethodScript(Technique):
+    """Custom MethodScript technique for EmStat Pico.
+
+    Allows running user-defined MethodScript files for complex or
+    compound electrochemical techniques.
+
+    Examples:
+        >>> ms = hp.potentiostat.MethodScript("my_experiment.mscr")
+        >>> ms.run()
+    """
+
+    def __init__(self, filepath: str, fileName: str = "MethodScript") -> None:
+        """Initialize with a MethodScript file.
+
+        Args:
+            filepath: Path to the MethodScript file (.mscr).
+            fileName: Base name for output files.
+        """
+        import os
+
+        self.filepath = filepath
+        self.fileName = fileName
+        self.header = "Custom MethodScript"
+        self.bpot = False
+
+        if model_pstat == "emstatpico":
+            # Verify file exists and has correct extension
+            if not os.path.isfile(filepath):
+                print("File " + filepath + " not found.")
+                return
+            if not filepath.endswith(".mscr"):
+                print("File " + filepath + " is not a MethodScript file.")
+                return
+
+            self.tech = emstatpico.CustomMethodScript(self.filepath)
+            Technique.__init__(self, text=self.tech.text, fileName=self.fileName)
+            self.technique = self.fileName.split(".")[0]
+        else:
+            print("Potentiostat model " + model_pstat + " does not have MethodScript.")
+
+
 if __name__ == "__main__":
     sens = 1e-8
     sr = [0.1, 0.2, 0.5]
