@@ -183,17 +183,21 @@ class Technique:
         Use specific technique classes like CV, LSV, CA, etc.
     """
 
-    def __init__(self, text: str = "", fileName: str = "CV") -> None:
+    def __init__(
+        self, text: str = "", fileName: str = "CV", plot_results: bool = True
+    ) -> None:
         """Initialize a technique.
 
         Args:
             text: The script text for the potentiostat.
             fileName: The base name for saving files.
+            plot_results: Whether to plot results after running (default True).
         """
         self.text = text  # text to write as macro
         self.fileName = fileName
         self.technique = "Technique"
         self.bpot = False
+        self.plot_results = plot_results
 
     def writeToFile(self) -> None:
         """Write the technique script to a file."""
@@ -223,7 +227,8 @@ class Technique:
             )
             subprocess.run(command)
             self.message(start=False)
-            self.plot()
+            if self.plot_results:
+                self.plot()
         elif model_pstat == "emstatpico":
             self.message()
             self.writeToFile()
@@ -244,7 +249,8 @@ class Technique:
                 bpot=self.bpot,
             )
             self.message(start=False)
-            self.plot()
+            if self.plot_results:
+                self.plot()
         else:
             print("\nNo potentiostat selected. Aborting.")
 
