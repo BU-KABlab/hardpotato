@@ -104,7 +104,16 @@ class Setup:
         global folder_save
         folder_save = folder
         global model_pstat
-        model_pstat = model
+        # Handle EmStat model variants
+        if model in ["emstatpico_lr", "emstatpico_low_range"]:
+            model_pstat = "emstatpico"
+            self.emstat_type = "low_range"
+        elif model in ["emstatpico_hr", "emstatpico_high_range"]:
+            model_pstat = "emstatpico"
+            self.emstat_type = "high_range"
+        else:
+            model_pstat = model
+            self.emstat_type = None
         global path_lib
         path_lib = path
         global port_
@@ -116,6 +125,8 @@ class Setup:
         """Display the current potentiostat setup."""
         print("\n----------")
         print("Potentiostat model: " + str(model_pstat))
+        if hasattr(self, "emstat_type") and self.emstat_type:
+            print("EmStat model type: " + str(self.emstat_type))
         print("Potentiostat path: " + str(path_lib))
         print("Save folder: " + str(folder_save))
         print("----------\n")
