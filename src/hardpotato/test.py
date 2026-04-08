@@ -1,10 +1,10 @@
 import potentiostat
 
-model = 'chi1205b'
-path = '.'
-folder = 'data'
+model = "chi1205b"
+path = "."
+folder = "data"
 
-#print(potentiostat.models_available)
+# print(potentiostat.models_available)
 info = potentiostat.Info(model)
 info.specifications()
 
@@ -12,16 +12,16 @@ info.specifications()
 potentiostat.Setup(model, path, folder)
 
 cv = potentiostat.LSV(Eini=1)
-#cv.bipot()
-#cv.run()
+# cv.bipot()
+# cv.run()
 
-#lsv = potentiostat.LSV(sr=0.5)
-#lsv.bipot()
-#lsv.run()
+# lsv = potentiostat.LSV(sr=0.5)
+# lsv.bipot()
+# lsv.run()
 
-#ca = potentiostat.CA()
-#ca.bipot()
-#ca.run()
+# ca = potentiostat.CA()
+# ca.bipot()
+# ca.run()
 
-#ocp = potentiostat.OCP()
-#ocp.run()
+# ocp = potentiostat.OCP()
+# ocp.run()

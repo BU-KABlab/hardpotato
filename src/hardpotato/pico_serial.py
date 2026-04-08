@@ -18,10 +18,10 @@ modification, are permitted provided that the following conditions are met:
    - Neither the name of PalmSens BV nor the names of its contributors
      may be used to endorse or promote products derived from this software
      without specific prior written permission.
-   - This license does not release you from any requirement to obtain separate 
-	  licenses from 3rd party patent holders to use this software.
-   - Use of the software either in source or binary form must be connected to, 
-	  run on or loaded to an PalmSens BV component.
+   - This license does not release you from any requirement to obtain separate
+          licenses from 3rd party patent holders to use this software.
+   - Use of the software either in source or binary form must be connected to,
+          run on or loaded to an PalmSens BV component.
 
 DISCLAIMER: THIS SOFTWARE IS PROVIDED BY PALMSENS "AS IS" AND ANY EXPRESS OR
 IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
@@ -57,17 +57,20 @@ def _is_mscript_device(port):
     # - An EmStat4 device in bootloader mode would be identified as
     #   'EmStat4 Bootloader', but we only want to connect to devices
     #   that can run MethodSCRIPTs, so we do not include that here.
-    return (port.description == 'EmStat4' or
-            port.description.startswith('ESPicoDev') or
-            port.description.startswith('SensitBT') or
-            port.description.startswith('SensitSmart') or
-            # ^ Above names are used in Linux
-            # v Below names are used in Windows
-            port.description.startswith('EmStat4 LR (COM') or
-            port.description.startswith('EmStat4 HR (COM') or
-            port.description.startswith('MultiEmStat4 LR (COM') or
-            port.description.startswith('MultiEmStat4 HR (COM') or
-            port.description.startswith('USB Serial Port'))
+    return (
+        port.description == "EmStat4"
+        or port.description.startswith("ESPicoDev")
+        or port.description.startswith("SensitBT")
+        or port.description.startswith("SensitSmart")
+        or
+        # ^ Above names are used in Linux
+        # v Below names are used in Windows
+        port.description.startswith("EmStat4 LR (COM")
+        or port.description.startswith("EmStat4 HR (COM")
+        or port.description.startswith("MultiEmStat4 LR (COM")
+        or port.description.startswith("MultiEmStat4 HR (COM")
+        or port.description.startswith("USB Serial Port")
+    )
 
 
 def auto_detect_port():
@@ -80,24 +83,24 @@ def auto_detect_port():
     which port to connect to (or disconnect unneeded devices with the
     same port name).
     """
-    LOG.info('Auto-detecting serial communication port.')
+    LOG.info("Auto-detecting serial communication port.")
     # Get the available ports.
     ports = serial.tools.list_ports.comports(include_links=False)
     candidates = []
     for port in ports:
-        LOG.debug('Found port: %s', port.description)
+        LOG.debug("Found port: %s", port.description)
         if _is_mscript_device(port):
             candidates.append(port)
 
     if len(candidates) != 1:
-        LOG.error('%d candidates found. Auto detect failed.', len(candidates))
-        raise Exception('Auto detection of serial port failed.')
+        LOG.error("%d candidates found. Auto detect failed.", len(candidates))
+        raise Exception("Auto detection of serial port failed.")
 
-    LOG.info('Exactly one candidate found. Using %s.', port.device)
+    LOG.info("Exactly one candidate found. Using %s.", port.device)
     return candidates[0].device
 
 
-class Serial():
+class Serial:
     """Serial communication interface for EmStat Pico."""
 
     def __init__(self, port, timeout):
