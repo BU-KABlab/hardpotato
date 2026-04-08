@@ -148,15 +148,40 @@ class Instrument:
             raise CommunicationError("No EOL character received.")
         return line
 
-    def readlines_until_end(self):
-        """Receive all lines until an empty line is received."""
+    def readlines_until_end(self, timeout_seconds=300):
+        """Receive all lines until an empty line is received.
+        
+        Args:
+            timeout_seconds: Maximum time to wait for data (default 5 minutes).
+            
+        Returns:
+            List of received lines.
+            
+        Raises:
+            CommunicationTimeout: If no data received within timeout period.
+        """
+        import time
+        
         lines = []
         print("Reading")
+        start_time = time.time()
+        consecutive_timeouts = 0
+        max_consecutive_timeouts = 10
+        
         while True:
-            # print('Reading')
+            # Check for overall timeout
+            if time.time() - start_time > timeout_seconds:
+                print(f"Timeout after {timeout_seconds} seconds")
+                break
+                
             try:
                 line = self.readline()
+                consecutive_timeouts = 0  # Reset on successful read
             except CommunicationTimeout:
+                consecutive_timeouts += 1
+                if consecutive_timeouts >= max_consecutive_timeouts:
+                    print(f"No data received after {max_consecutive_timeouts} consecutive timeouts")
+                    break
                 continue
             if line == "\n":
                 break
