@@ -400,6 +400,6 @@ class OCP:
         self.text = self.ini + self.pre_body + self.body
 
     def validate(self, ttot, dt):
-        info = Info()
+        Info()
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')

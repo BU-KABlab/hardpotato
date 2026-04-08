@@ -384,9 +384,9 @@ class OCP:
         else:
             qt = 2
         if "resistance" in kwargs:
-            resistance = kwargs.get("resistance")
+            kwargs.get("resistance")
         else:
-            resistance = 0
+            pass
 
         self.head = (
             "C\x02\0\0\nfolder: "
@@ -416,6 +416,6 @@ class OCP:
         self.validate(ttot, dt)
 
     def validate(self, ttot, dt):
-        info = Info()
+        Info()
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
