@@ -131,6 +131,46 @@ class Setup:
         print("Save folder: " + str(folder_save))
         print("----------\n")
 
+    def check_connection(self) -> bool:
+        """Check if a connection can be made to the potentiostat.
+
+        Returns:
+            bool: True if the connection is successful, False otherwise.
+
+        Examples:
+            >>> pstat = hp.potentiostat.Setup('emstatpico', folder='C:/Data')
+            >>> if pstat.check_connection():
+            ...     print("Connected!")
+        """
+        import os
+
+        if model_pstat[0:3] == "chi":
+            # For CHI potentiostats, check if the executable exists
+            if os.path.isfile(path_lib):
+                print(f"CHI executable found at: {path_lib}")
+                return True
+            else:
+                print(f"CHI executable not found at: {path_lib}")
+                return False
+        elif model_pstat == "emstatpico":
+            # For EmStat Pico, try to connect via serial
+            try:
+                if port_ is None:
+                    port = serial.auto_detect_port()
+                else:
+                    port = port_
+                with serial.Serial(port, 1) as comm:
+                    dev = instrument.Instrument(comm)
+                    firmware = dev.get_firmware_version()
+                    print(f"Connected to EmStat Pico, firmware: {firmware}")
+                    return True
+            except Exception as e:
+                print(f"Could not connect to EmStat Pico: {e}")
+                return False
+        else:
+            print(f"Unknown potentiostat model: {model_pstat}")
+            return False
+
 
 class Technique:
     """Base class for all electrochemical techniques.
