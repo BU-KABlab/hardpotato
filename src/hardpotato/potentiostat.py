@@ -611,6 +611,61 @@ class OCP(Technique):
             print("Potentiostat model " + model_pstat + " does not have OCP.")
 
 
+class EIS(Technique):
+    """Electrochemical Impedance Spectroscopy (EIS) technique.
+
+    Currently only supported for EmStat Pico.
+
+    Examples:
+        >>> eis = hp.potentiostat.EIS(Eini=0, low_freq=0.1, high_freq=100000)
+        >>> eis.run()
+    """
+
+    def __init__(
+        self,
+        Eini=0,
+        ch=0,
+        low_freq=0.1,
+        high_freq=100000,
+        amplitude=0.01,
+        sens=1e-6,
+        fileName="EIS",
+        header="EIS",
+        **kwargs,
+    ):
+        """Initialize EIS measurement.
+
+        Args:
+            Eini: DC potential (V)
+            ch: Channel number (0 or 1)
+            low_freq: Start frequency (Hz)
+            high_freq: End frequency (Hz)
+            amplitude: AC amplitude (V)
+            sens: Sensitivity (A/V)
+            fileName: Output file name
+            header: File header text
+        """
+        self.header = header
+        if model_pstat == "emstatpico":
+            self.tech = emstatpico.EIS(
+                Eini,
+                ch,
+                low_freq,
+                high_freq,
+                amplitude,
+                sens,
+                folder_save,
+                fileName,
+                header,
+                path_lib,
+                **kwargs,
+            )
+            Technique.__init__(self, text=self.tech.text, fileName=fileName)
+            self.technique = "EIS"
+        else:
+            print("Potentiostat model " + model_pstat + " does not have EIS.")
+
+
 class NPV(Technique):
     """ """
 

@@ -429,3 +429,61 @@ class OCP:
         Info()
         # info.limits(dt, info.dt_min, info.dt_max, 'dt', 's')
         # info.limits(ttot, info.ttot_min, info.ttot_max, 'ttot', 's')
+
+
+class EIS:
+    """Electrochemical Impedance Spectroscopy (EIS) technique for EmStat Pico.
+
+    This class generates MethodScript code for EIS measurements.
+    """
+
+    def __init__(
+        self,
+        Eini,
+        ch,
+        low_freq,
+        high_freq,
+        amplitude,
+        sens,
+        folder,
+        fileName,
+        header,
+        path_lib,
+        **kwargs,
+    ):
+        """Initialize EIS measurement.
+
+        Args:
+            Eini: DC potential (V)
+            ch: Channel number (0 or 1)
+            low_freq: Start frequency (Hz)
+            high_freq: End frequency (Hz)
+            amplitude: AC amplitude (V)
+            sens: Sensitivity (A/V)
+            folder: Save folder path
+            fileName: Output file name
+            header: File header text
+            path_lib: Library path (unused for EmStat)
+        """
+        self.Eini = int(Eini * 1000)
+        self.ch = ch
+        self.low_freq = low_freq
+        self.high_freq = high_freq
+        self.amplitude = amplitude
+        self.sens = sens
+        self.text = ""
+        self.path_lib = path_lib
+        self.validate(Eini, ch, low_freq, high_freq, amplitude, sens)
+
+        if ch == 0:
+            self.text = "e\nvar h\nvar r\nvar j\nset_pgstat_chan 1\nset_pgstat_mode 0\nset_pgstat_chan 0\nset_pgstat_mode 3\nset_max_bandwidth 200k\nset_range_minmax da 0 0\nset_range ba 2950u\nset_autoranging ba 2950u 2950u\nset_range ab 4200m\nset_autoranging ab 4200m 4200m\nset_e 0\ncell_on\nmeas_loop_eis h r j 100m 200k 100 31 0\n  pck_start\n    pck_add h\n    pck_add r\n    pck_add j\n  pck_end\nendloop\non_finished:\n  cell_off\n\n"
+        elif ch == 1:
+            self.text = "e\nvar h\nvar r\nvar j\nset_pgstat_chan 0\nset_pgstat_mode 0\nset_pgstat_chan 1\nset_pgstat_mode 3\nset_max_bandwidth 200k\nset_range_minmax da 0 0\nset_range ba 2950u\nset_autoranging ba 2950n 2950u\nset_range ab 4200m\nset_autoranging ab 4200m 4200m\nset_e 0\ncell_on\nmeas_loop_eis h r j 100m 200k 100 34 0\n  pck_start\n    pck_add h\n    pck_add r\n    pck_add j\n  pck_end\nendloop\non_finished:\n  cell_off\n\n"
+
+    def validate(self, Edc, ch, fstart, fend, amp, sens):
+        """Validate EIS parameters."""
+        info = Info()
+        info.limits(Edc, info.E_min, info.E_max, "Edc", "V")
+        info.limits(fstart, info.freq_min, info.freq_max, "fstart", "Hz")
+        info.limits(fend, info.freq_min, info.freq_max, "fend", "Hz")
+        return True
