@@ -71,7 +71,18 @@ class Info:
 
 
 class Setup:
-    """Setup class for configuring the potentiostat connection."""
+    """Setup class for configuring the potentiostat connection.
+
+    This class initializes the global settings for the potentiostat, including
+    the model, file paths, and save folders.
+
+    Examples:
+        >>> import hardpotato as hp
+        >>> # Setup for CHI potentiostat
+        >>> hp.potentiostat.Setup('chi760e', 'C:/CHI/chi760e.exe', 'C:/Data')
+        >>> # Setup for EmStat Pico
+        >>> hp.potentiostat.Setup('emstatpico', folder='C:/Data')
+    """
 
     def __init__(
         self,
@@ -81,6 +92,15 @@ class Setup:
         port: Optional[str] = None,
         verbose: int = 1,
     ) -> None:
+        """Initialize the potentiostat setup.
+
+        Args:
+            model: The potentiostat model name (e.g., "chi760e", "emstatpico").
+            path: Path to the potentiostat software (CHI only).
+            folder: Folder path where data will be saved.
+            port: Serial port for EmStat Pico (auto-detected if None).
+            verbose: Whether to print setup information (1=True, 0=False).
+        """
         global folder_save
         folder_save = folder
         global model_pstat
@@ -102,15 +122,30 @@ class Setup:
 
 
 class Technique:
-    """Base class for all electrochemical techniques."""
+    """Base class for all electrochemical techniques.
+
+    This class provides common functionality for all electrochemical techniques,
+    including file I/O, running experiments, and plotting results.
+
+    Note:
+        This class is not intended to be instantiated directly.
+        Use specific technique classes like CV, LSV, CA, etc.
+    """
 
     def __init__(self, text: str = "", fileName: str = "CV") -> None:
+        """Initialize a technique.
+
+        Args:
+            text: The script text for the potentiostat.
+            fileName: The base name for saving files.
+        """
         self.text = text  # text to write as macro
         self.fileName = fileName
         self.technique = "Technique"
         self.bpot = False
 
     def writeToFile(self) -> None:
+        """Write the technique script to a file."""
         if model_pstat[0:3] == "chi":
             file = open(folder_save + "/" + self.fileName + ".mcr", "wb")
             file.write(self.text.encode("ascii"))
