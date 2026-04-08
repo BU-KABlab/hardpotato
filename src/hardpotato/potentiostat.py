@@ -1,4 +1,5 @@
 import subprocess
+from typing import Any, Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -25,9 +26,9 @@ path_lib = "."
 
 
 class Test:
-    """ """
+    """Test class for the potentiostat module."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         print("Test from potentiostat module")
 
 
@@ -38,7 +39,7 @@ class Info:
     the selected potentiostat model.
     """
 
-    def __init__(self, model):
+    def __init__(self, model: str) -> None:
         """Initialize the Info class for a specific potentiostat model.
 
         Args:
@@ -64,13 +65,22 @@ class Info:
             print("Potentiostat model " + model + " not available in the library.")
             print("Available models:", models_available)
 
-    def specifications(self):
+    def specifications(self) -> None:
         """Display the specifications of the potentiostat."""
         self.info.specifications()
 
 
 class Setup:
-    def __init__(self, model=0, path=".", folder=".", port=None, verbose=1):
+    """Setup class for configuring the potentiostat connection."""
+
+    def __init__(
+        self,
+        model: str = "0",
+        path: str = ".",
+        folder: str = ".",
+        port: Optional[str] = None,
+        verbose: int = 1,
+    ) -> None:
         global folder_save
         folder_save = folder
         global model_pstat
@@ -82,24 +92,25 @@ class Setup:
         if verbose:
             self.info()
 
-    def info(self):
+    def info(self) -> None:
+        """Display the current potentiostat setup."""
         print("\n----------")
-        print("Potentiostat model: " + model_pstat)
-        print("Potentiostat path: " + path_lib)
-        print("Save folder: " + folder_save)
+        print("Potentiostat model: " + str(model_pstat))
+        print("Potentiostat path: " + str(path_lib))
+        print("Save folder: " + str(folder_save))
         print("----------\n")
 
 
 class Technique:
-    """ """
+    """Base class for all electrochemical techniques."""
 
-    def __init__(self, text="", fileName="CV"):
+    def __init__(self, text: str = "", fileName: str = "CV") -> None:
         self.text = text  # text to write as macro
         self.fileName = fileName
         self.technique = "Technique"
         self.bpot = False
 
-    def writeToFile(self):
+    def writeToFile(self) -> None:
         if model_pstat[0:3] == "chi":
             file = open(folder_save + "/" + self.fileName + ".mcr", "wb")
             file.write(self.text.encode("ascii"))

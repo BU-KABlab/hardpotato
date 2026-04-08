@@ -1,21 +1,20 @@
 import numpy as np
 
 
-
 class Test:
-    """ """
+    """Test class for the load_data module."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         print("Test from load_data module")
 
 
 class Read:
-    """ """
+    """Base class for reading data files from potentiostats."""
 
-    def __init__(self):
-        self.file_path = self.folder + "/" + self.fileName
+    def __init__(self) -> None:
+        self.file_path: str = self.folder + "/" + self.fileName
 
-    def read(self, text=0, model=0):
+    def read(self, text: str = "0", model: str = "0") -> None:
         self.delimiter = ","
         if model[0:3] == "chi":
             self.skiprows = self.search(text)
@@ -52,7 +51,8 @@ class Read:
             self.E = self.data[:, 0]
             self.i = self.data[:, 1:]
 
-    def search(self, text):
+    def search(self, text: str) -> int:
+        """Search for a string in the file and return the line number."""
         file = open(self.file_path, "r")
         count = 0
         for line in file:
@@ -63,9 +63,16 @@ class Read:
 
 
 class XY(Read):
-    """ """
+    """Generic data reader for files with x and y columns."""
 
-    def __init__(self, fileName="file", folder=".", skiprows=0, delimiter=",", model=0):
+    def __init__(
+        self,
+        fileName: str = "file",
+        folder: str = ".",
+        skiprows: int = 0,
+        delimiter: str = ",",
+        model: str = "0",
+    ) -> None:
         self.fileName = fileName
         self.folder = folder
         Read.__init__(self)
@@ -75,9 +82,11 @@ class XY(Read):
 
 
 class CV(Read):
-    """ """
+    """Reader for Cyclic Voltammetry (CV) data files."""
 
-    def __init__(self, fileName="file", folder=".", model=0):
+    def __init__(
+        self, fileName: str = "file", folder: str = ".", model: str = "0"
+    ) -> None:
         self.fileName = fileName
         self.folder = folder
         text = "Potential/V,"
@@ -89,18 +98,22 @@ class CV(Read):
 
 
 class LSV(Read):
-    """ """
+    """Reader for Linear Sweep Voltammetry (LSV) data files."""
 
-    def __init__(self, fileName="file", folder=".", model=0):
+    def __init__(
+        self, fileName: str = "file", folder: str = ".", model: str = "0"
+    ) -> None:
         cv = CV(fileName, folder, model)  # Same as CV
         self.E = cv.E
         self.i = cv.i
 
 
 class CA(Read):
-    """ """
+    """Reader for Chronoamperometry (CA) data files."""
 
-    def __init__(self, fileName="file", folder=".", model=0):
+    def __init__(
+        self, fileName: str = "file", folder: str = ".", model: str = "0"
+    ) -> None:
         self.fileName = fileName
         self.folder = folder
         text = "Time/sec,"
@@ -108,14 +121,15 @@ class CA(Read):
         self.read(text, model)
         if model[0:3] == "chi":
             self.t = self.x
-            # self.E = self.E
             self.i = self.y
 
 
 class OCP(Read):
-    """ """
+    """Reader for Open Circuit Potential (OCP) data files."""
 
-    def __init__(self, fileName="file", folder=".", model=0):
+    def __init__(
+        self, fileName: str = "file", folder: str = ".", model: str = "0"
+    ) -> None:
         self.fileName = fileName
         self.folder = folder
         text = "Time/sec,"
