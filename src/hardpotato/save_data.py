@@ -64,6 +64,7 @@ class CV:
         self.bpot = bpot
 
     def save(self) -> np.ndarray:
+        data_array = np.array([])
         if self.model == "emstatpico":
             t = mscript.get_values_by_column(self.data, 0)
             E = mscript.get_values_by_column(self.data, 1)

@@ -8,7 +8,7 @@ class Test:
 class Info:
     """
     Information class for the Emstat Pico potentiostat.
-    
+
     Contains specifications and validation functionality for the
     Emstat Pico potentiostat, including available techniques, options, and
     parameter limits.
@@ -16,7 +16,7 @@ class Info:
 
     def __init__(self, model="low_range"):
         """Initialize the Info class with Emstat Pico specifications.
-        
+
         Args:
             model: Model variant - "low_range" (default) for EmStat Pico,
                    "high_range" or "hr" for EmStat4 HR.

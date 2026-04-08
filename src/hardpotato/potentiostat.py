@@ -1,5 +1,5 @@
 import subprocess
-from typing import Any, Optional
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -724,41 +724,6 @@ class NPV(Technique):
             self.technique = "NPV"
         else:
             print("Potentiostat model " + model_pstat + " does not have NPV.")
-
-
-class EIS(Technique):
-    """ """
-
-    def __init__(
-        self,
-        Eini=0,
-        low_freq=1,
-        high_freq=1000,
-        amplitude=0.01,
-        sens=1e-6,
-        fileName="EIS",
-        header="EIS",
-        **kwargs,
-    ):
-        self.header = header
-        if model_pstat == "chi760e":
-            self.tech = chi760e.EIS(
-                Eini,
-                low_freq,
-                high_freq,
-                amplitude,
-                sens,
-                qt,
-                folder_save,
-                fileName,
-                header,
-                path_lib,
-                **kwargs,
-            )
-            Technique.__init__(self, text=self.tech.text, fileName=fileName)
-            self.technique = "EIS"
-        else:
-            print("Potentiostat model " + model_pstat + " does not have EIS.")
 
 
 class MethodScript(Technique):
