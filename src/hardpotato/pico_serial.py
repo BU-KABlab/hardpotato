@@ -42,7 +42,6 @@ import logging
 import serial
 import serial.tools.list_ports
 
-
 LOG = logging.getLogger(__name__)
 
 

@@ -45,7 +45,6 @@ import warnings
 # Third-party imports
 import numpy as np
 
-
 # Custom types
 VarType = collections.namedtuple("VarType", ["id", "name", "unit"])
 MScriptVar = collections.namedtuple(

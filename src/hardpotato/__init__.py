@@ -3,8 +3,7 @@ hardpotato library
 
 """
 
-from . import potentiostat
-from . import load_data
+from . import load_data, potentiostat
 
 __version__ = "1.3.11"
 __author__ = "Oliver Rodriguez"
