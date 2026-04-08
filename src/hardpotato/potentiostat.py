@@ -234,6 +234,8 @@ class Technique:
             self.writeToFile()
             if port_ is None:
                 self.port = serial.auto_detect_port()
+            else:
+                self.port = port_
             with serial.Serial(self.port, 1) as comm:
                 dev = instrument.Instrument(comm)
                 dev.send_script(folder_save + "/" + self.fileName + ".mscr")

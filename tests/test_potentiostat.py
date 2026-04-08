@@ -84,19 +84,38 @@ class TestTechnique:
 
         with patch.object(potentiostat.Technique, "writeToFile"):
             with patch.object(potentiostat.Technique, "message"):
-                with patch("hardpotato.pico_serial.Serial"):
-                    with patch("hardpotato.potentiostat.mscript.parse_result_lines"):
-                        with patch("hardpotato.potentiostat.save_data.Save"):
-                            mock_instrument.readlines_until_end.return_value = (
-                                sample_emstatpico_result
-                            )
+                with patch.object(potentiostat.Technique, "plot"):
+                    with patch("hardpotato.potentiostat.serial.Serial") as mock_serial:
+                        with patch(
+                            "hardpotato.potentiostat.mscript.parse_result_lines"
+                        ):
+                            with patch("hardpotato.potentiostat.save_data.Save"):
+                                # Setup mock serial context manager
+                                mock_comm = MagicMock()
+                                mock_serial.return_value.__enter__ = MagicMock(
+                                    return_value=mock_comm
+                                )
+                                mock_serial.return_value.__exit__ = MagicMock(
+                                    return_value=False
+                                )
 
-                            tech = potentiostat.Technique(
-                                text="test text", fileName="test_file"
-                            )
-                            tech.run()
+                                with patch(
+                                    "hardpotato.potentiostat.instrument.Instrument"
+                                ) as mock_inst_class:
+                                    mock_inst = MagicMock()
+                                    mock_inst.readlines_until_end.return_value = (
+                                        sample_emstatpico_result
+                                    )
+                                    mock_inst_class.return_value = mock_inst
 
-                            mock_instrument.send_script.assert_called_once()
+                                    tech = potentiostat.Technique(
+                                        text="test text", fileName="test_file"
+                                    )
+                                    tech.header = "Test"
+                                    tech.technique = "CV"
+                                    tech.run()
+
+                                    mock_inst.send_script.assert_called_once()
 
     def test_bipot(self):
         """Test setting bipotentiostat mode."""

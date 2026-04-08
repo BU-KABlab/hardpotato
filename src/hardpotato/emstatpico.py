@@ -64,6 +64,7 @@ class Info:
                 + " "
                 + units
             )
+        return True
 
     def specifications(self):
         if self.model == "high_range" or self.model == "hr":
@@ -406,19 +407,19 @@ class OCP:
     """ """
 
     def __init__(self, ttot, dt, folder, fileName, header, path_lib=None, **kwargs):
-        dt = int(dt * 1000)
-        ttot = int(ttot * 1000)
+        self.dt = int(dt * 1000)
+        self.ttot = int(ttot * 1000)
         self.text = ""
 
-        self.validate(ttot, dt)
+        self.validate(self.ttot, self.dt)
 
         self.ini = "e\nvar p\nvar a\n"
         self.pre_body = "set_pgstat_mode 4\ncell_off\ntimer_start\n"
         self.body = (
             "meas_loop_ocp p "
-            + str(dt)
+            + str(self.dt)
             + "m "
-            + str(ttot)
+            + str(self.ttot)
             + "m "
             + "\n\tpck_start\n\ttimer_get a\n\tpck_add a\n\tpck_add p"
             + "\n\tpck_end\nendloop\non_finished:\ncell_off\n\n"
